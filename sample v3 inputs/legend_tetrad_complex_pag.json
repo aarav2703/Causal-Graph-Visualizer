@@ -1,0 +1,71 @@
+{
+  "title": "Tetrad Complex PAG Legend",
+  "subtitle": "Legend tailored to tetrad_complex_pag.txt and the mixed-edge clinical workflow it illustrates.",
+  "sections": [
+    {
+      "heading": "Scenario",
+      "items": [
+        {
+          "symbol": "tip",
+          "label": "Intervention pathway",
+          "description": "Intervention feeds Adherence and Monitoring, which then influence Recovery and later Relapse."
+        },
+        {
+          "symbol": "tip",
+          "label": "Latent pressure",
+          "description": "UnmeasuredRisk introduces partially oriented uncertainty into Biomarker and Symptoms."
+        }
+      ]
+    },
+    {
+      "heading": "Edge Types In This Sample",
+      "items": [
+        {
+          "symbol": "tail-arrow",
+          "label": "Directed clinical effect",
+          "description": "Used for effects like Intervention -> Adherence and Biomarker -> Recovery."
+        },
+        {
+          "symbol": "tail-tail",
+          "label": "Undirected structural link",
+          "description": "Support -- Adherence keeps one unresolved relationship in the graph."
+        },
+        {
+          "symbol": "arrow-arrow",
+          "label": "Bidirected dependence",
+          "description": "Monitoring <-> Relapse demonstrates a confounding-style pattern."
+        },
+        {
+          "symbol": "circle-arrow",
+          "label": "Partially oriented edge",
+          "description": "Biomarker o-> Symptoms and UnmeasuredRisk o-> Biomarker show PAG uncertainty."
+        },
+        {
+          "symbol": "circle-circle",
+          "label": "Unresolved on both ends",
+          "description": "UnmeasuredRisk o-o Symptoms keeps both endpoint orientations open."
+        }
+      ]
+    },
+    {
+      "heading": "Metadata To Demo",
+      "items": [
+        {
+          "symbol": "tip",
+          "label": "Weights / beta values",
+          "description": "Use Edge labels -> Weight / beta to show signed effect-size values on the graph."
+        },
+        {
+          "symbol": "tip",
+          "label": "Confidence values",
+          "description": "Use Edge labels -> Confidence and the threshold slider to filter weaker edges."
+        },
+        {
+          "symbol": "target-highlight",
+          "label": "Target scope",
+          "description": "Select Recovery or Relapse and switch scope to parents, children, ancestors, or descendants."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Causal Viewer v3</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="container">
+    <aside id="sidebar">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Prototype</p>
+          <h1>Causal Viewer v3</h1>
+        </div>
+        <div class="header-actions">
+          <button id="viewer-guide-btn" class="icon-button" type="button" aria-label="Open feature guide">i</button>
+          <button id="reset-view-btn" type="button">Reset View</button>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h2>Import</h2>
+        <label class="field-label" for="parser-select">Source format</label>
+        <select id="parser-select">
+          <option value="tetrad">Tetrad</option>
+          <option value="causal-learn">causal-learn</option>
+          <option value="dowhy">DoWhy</option>
+          <option value="dagitty">Dagitty</option>
+          <option value="canonical-json">Canonical JSON</option>
+        </select>
+        <label class="field-label" for="graph-file-input">Graph file</label>
+        <input id="graph-file-input" type="file" />
+        <input id="session-file-input" type="file" accept=".json,application/json" hidden />
+        <button id="import-btn" type="button">Import Graph</button>
+        <button id="import-legend-btn" type="button">Import Legend</button>
+        <p id="import-status" class="hint">Import server not checked yet.</p>
+        <p class="hint">Launch the app with `python launcher.py` for the easiest demo flow, or start `python scripts/import_graph_server.py` before importing.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Targets</h2>
+        <label class="field-label" for="target-select">Choose targets</label>
+        <select id="target-select" multiple size="10"></select>
+
+        <div class="inline-field">
+          <label for="target-color">Target color</label>
+          <input id="target-color" type="color" value="#4f7cff" />
+        </div>
+
+        <label class="field-label" for="target-scope">Target scope</label>
+        <select id="target-scope">
+          <option value="all">Show full graph</option>
+          <option value="neighbors">Show neighbors</option>
+          <option value="parents">Show parents</option>
+          <option value="children">Show children</option>
+          <option value="ancestors">Show ancestors</option>
+          <option value="descendants">Show descendants</option>
+        </select>
+      </section>
+
+      <section class="panel">
+        <h2>Edge Filter</h2>
+        <label class="field-label" for="threshold-slider">Visibility threshold</label>
+        <input id="threshold-slider" type="range" min="0" max="100" value="50" />
+        <div class="metric-row">
+          <span>Threshold</span>
+          <strong id="threshold-label">50%</strong>
+        </div>
+        <label class="field-label" for="edge-alpha-filter-mode">Edge transparency filter</label>
+        <select id="edge-alpha-filter-mode">
+          <option value="off">Off</option>
+          <option value="auto">Auto</option>
+          <option value="beta">Beta / weight</option>
+          <option value="confidence">Confidence</option>
+        </select>
+        <label class="field-label" for="edge-width-filter-mode">Edge thickness filter</label>
+        <select id="edge-width-filter-mode">
+          <option value="off">Off</option>
+          <option value="auto">Auto</option>
+          <option value="beta">Beta / weight</option>
+          <option value="confidence">Confidence</option>
+        </select>
+        <label class="field-label" for="edge-label-mode">Edge labels</label>
+        <select id="edge-label-mode">
+          <option value="auto">Auto</option>
+          <option value="weight">Weight / beta</option>
+          <option value="confidence">Confidence</option>
+          <option value="none">No labels</option>
+        </select>
+        <label class="field-label" for="edge-label-size">Edge label size</label>
+        <input id="edge-label-size" type="range" min="10" max="22" value="12" />
+        <div class="metric-row">
+          <span>Label size</span>
+          <strong id="edge-label-size-label">12px</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Layout</h2>
+        <div class="button-grid">
+          <button id="edge-step" type="button">Edge Pull</button>
+          <button id="vertex-step" type="button">Vertex Push</button>
+        </div>
+        <p class="hint">Hold the buttons to continuously nudge the layout while selected targets stay pinned.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Workspace</h2>
+        <label class="field-label" for="width-slider">Sidebar width</label>
+        <input id="width-slider" type="range" min="18" max="48" value="28" />
+        <div class="metric-row">
+          <span>Width</span>
+          <strong id="width-label">28%</strong>
+        </div>
+        <label class="field-label" for="export-type">Export image type</label>
+        <select id="export-type">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+          <option value="svg">SVG</option>
+        </select>
+        <button id="save-session-btn" type="button">Save Session</button>
+        <button id="load-session-btn" type="button">Load Session</button>
+        <button id="export-image-btn" type="button">Export Final Image</button>
+        <button id="export-layout-btn" type="button">Export Layout Snapshot</button>
+      </section>
+
+      <section class="panel panel-compact">
+        <p id="status">Import a graph to begin.</p>
+        <p class="hint">Mouse: wheel to zoom, drag node to reposition, drag empty canvas to pan, drag the divider to resize.</p>
+      </section>
+    </aside>
+
+    <div id="divider" aria-hidden="true"></div>
+
+    <main id="canvas-container">
+      <canvas id="canvas"></canvas>
+      <section id="style-editor" class="style-editor hidden">
+        <div class="style-editor-header">
+          <strong id="style-editor-title">Edit Style</strong>
+          <button id="style-editor-close" type="button">Close</button>
+        </div>
+
+        <div id="node-style-fields">
+          <label class="field-label" for="style-node-color">Color</label>
+          <input id="style-node-color" type="color" />
+          <label class="field-label" for="style-node-alpha">Transparency</label>
+          <input id="style-node-alpha" type="range" min="0.1" max="1" step="0.05" />
+          <label class="field-label" for="style-node-size">Size</label>
+          <input id="style-node-size" type="range" min="14" max="48" step="1" />
+          <label class="field-label" for="style-node-shape">Shape</label>
+          <select id="style-node-shape">
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="diamond">Diamond</option>
+          </select>
+        </div>
+
+        <div id="edge-style-fields">
+          <label class="field-label" for="style-edge-color">Color</label>
+          <input id="style-edge-color" type="color" />
+          <label class="field-label" for="style-edge-alpha">Transparency</label>
+          <input id="style-edge-alpha" type="range" min="0.1" max="1" step="0.05" />
+          <label class="field-label" for="style-edge-width">Width</label>
+          <input id="style-edge-width" type="range" min="2" max="10" step="0.5" />
+          <label class="field-label" for="style-edge-bend">Edge bend</label>
+          <input id="style-edge-bend" type="range" min="-100" max="100" step="1" value="0" />
+          <div class="metric-row">
+            <span>Bend</span>
+            <strong id="style-edge-bend-label">Straight</strong>
+          </div>
+        </div>
+      </section>
+
+      <section id="legend-panel" class="legend-panel hidden">
+        <div id="legend-header" class="legend-header">
+          <strong id="legend-title">Legend</strong>
+        </div>
+        <p id="legend-subtitle" class="legend-subtitle"></p>
+        <div id="legend-body" class="legend-body"></div>
+      </section>
+
+      <section id="viewer-guide-modal" class="guide-modal hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-guide-title">
+        <div id="viewer-guide-card" class="guide-card">
+          <div class="guide-header">
+            <div>
+              <p class="eyebrow">Guide</p>
+              <h2 id="viewer-guide-title">How The Viewer Works</h2>
+            </div>
+            <button id="viewer-guide-close" type="button">Close</button>
+          </div>
+
+          <div class="guide-body">
+            <section class="guide-section">
+              <h3>Quick Start</h3>
+              <p>Import a graph first. Once a graph is loaded, the viewer becomes a small workbench for filtering, styling, layout adjustment, legend handling, session save/load, and export.</p>
+            </section>
+
+            <section class="guide-section">
+              <h3>Import</h3>
+              <p>Choose the source format, select a file, and click <strong>Import Graph</strong>. The browser sends the raw file to the local Python import service, which normalizes it into the viewer&apos;s internal graph format.</p>
+            </section>
+
+            <section class="guide-section">
+              <h3>Targets And Scope</h3>
+              <p>Use the target list to focus analysis on selected nodes. The scope control can keep the full graph visible or reduce the view to neighbors, parents, children, ancestors, or descendants.</p>
+            </section>
+
+            <section class="guide-section">
+              <h3>Edge Filters</h3>
+              <p>The threshold removes weaker edges. Transparency, width, and label controls can expose weight or confidence values without changing the underlying graph.</p>
+            </section>
+
+            <section class="guide-section">
+              <h3>Layout And Editing</h3>
+              <p>Drag nodes to reposition them. Hold <strong>Edge Pull</strong> or <strong>Vertex Push</strong> to nudge the layout. Right-click a node or edge to edit visual styling directly inside the viewer.</p>
+            </section>
+
+            <section class="guide-section">
+              <h3>Legend, Sessions, And Export</h3>
+              <p>Use <strong>Import Legend</strong> to load the matching sample legend. Save sessions to preserve graph state and UI state. Export figures as PNG, JPEG, WebP, or SVG, or export the current graph layout as JSON.</p>
+            </section>
+
+            <section class="guide-section">
+              <h3>Canvas Controls</h3>
+              <p>Use the mouse wheel to zoom, drag empty space to pan, and drag the divider to resize the sidebar. The viewer remembers key interface settings in the browser.</p>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

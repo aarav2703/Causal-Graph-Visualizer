@@ -1,0 +1,6 @@
+digraph {
+  Age -> Stress;
+  Exercise -> SleepQuality;
+  Stress -> SleepQuality;
+  SleepQuality -> HeartRisk;
+}

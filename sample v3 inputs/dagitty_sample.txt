@@ -1,0 +1,6 @@
+dag {
+  Age -> Stress;
+  Exercise -> SleepQuality;
+  Stress -> SleepQuality;
+  SleepQuality -> HeartRisk;
+}

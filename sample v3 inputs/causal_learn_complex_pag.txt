@@ -1,0 +1,19 @@
+Graph Nodes:
+Intervention; Lifestyle; Support; Monitoring; Adherence; Biomarker; Symptoms; Recovery; Relapse; UnmeasuredRisk
+
+Graph Edges:
+1. Intervention --> Adherence [weight=0.74, confidence=0.96]
+2. Lifestyle --> Biomarker [weight=0.48, confidence=0.81]
+3. Lifestyle --> Symptoms [weight=-0.41, confidence=0.78]
+4. Support --> Monitoring [weight=0.57, confidence=0.88]
+5. Monitoring --> Recovery [weight=0.53, confidence=0.84]
+6. Adherence --> Recovery [weight=0.69, confidence=0.93]
+7. Symptoms --> Recovery [weight=-0.62, confidence=0.9]
+8. Recovery --> Relapse [weight=-0.58, confidence=0.86]
+9. Support --- Adherence [weight=0.33, confidence=0.55]
+10. Monitoring <-> Relapse [weight=0.27, confidence=0.63]
+11. Biomarker o-> Symptoms [weight=-0.36, confidence=0.72]
+12. UnmeasuredRisk o-> Biomarker [weight=0.44, confidence=0.69]
+13. UnmeasuredRisk o-o Symptoms [weight=0.22, confidence=0.47]
+14. Intervention --> Monitoring [weight=0.51, confidence=0.83]
+15. Biomarker --> Recovery [weight=0.38, confidence=0.76]
