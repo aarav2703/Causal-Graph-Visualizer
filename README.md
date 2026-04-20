@@ -61,6 +61,15 @@ Basic flow:
 5. Optionally load the matching legend.
 6. Explore, edit, and export the graph.
 
+**Screenshots**
+Main workspace with the sidebar controls, loaded complex sample graph, and legend panel:
+
+![Main viewer workspace](./docs/screenshots/viewer-workspace.png)
+
+Edge styling editor opened on a graph edge:
+
+![Edge style editor](./docs/screenshots/edge-style-editor.png)
+
 **Development Notes**
 - The viewer starts empty until a graph is imported.
 - Import and legend loading depend on the local Python server.
