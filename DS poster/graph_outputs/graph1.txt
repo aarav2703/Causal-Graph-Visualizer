@@ -1,0 +1,31 @@
+Graph Nodes:
+X12;X23;X8;X18;X5;X20;X17;X21;X15;X13;X3;X2;X19;X22;X9;X7;X16;X1;X14;X11
+
+Graph Edges:
+1. X5 --> X9 dd nl
+2. X5 --> X16 dd nl
+3. X18 --> X8 dd nl
+4. X5 --> X11 pd nl
+5. X5 --> X22 pd nl
+6. X8 --> X5 pd nl
+7. X15 --> X8 pd nl
+8. X16 --> X17 pd nl
+9. X17 --> X19 pd nl
+10. X18 --> X15 pd nl
+11. X1 o-> X16
+12. X2 o-> X23
+13. X3 o-o X2
+14. X3 o-> X9
+15. X3 o-> X13
+16. X7 o-o X14
+17. X9 <-> X19
+18. X11 o-> X9
+19. X11 o-> X16
+20. X12 o-> X13
+21. X14 o-> X23
+22. X17 <-> X9
+23. X21 <-> X16
+24. X21 <-> X18
+25. X23 <-> X15
+26. X23 <-> X18
+

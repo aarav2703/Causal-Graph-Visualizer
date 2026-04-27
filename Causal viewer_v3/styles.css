@@ -57,6 +57,57 @@ body {
   display: block;
 }
 
+.toast {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 40;
+  width: min(420px, calc(100% - 36px));
+  padding: 14px 46px 14px 16px;
+  border: 1px solid rgba(76, 86, 106, 0.18);
+  border-left: 5px solid #4f7cff;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 36px rgba(28, 36, 51, 0.22);
+}
+
+.toast.hidden {
+  display: none;
+}
+
+.toast strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.toast p {
+  color: #31384a;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.toast button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: auto;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.toast-error {
+  border-left-color: #c84545;
+}
+
+.toast-warning {
+  border-left-color: #c48a2c;
+}
+
+.toast-success {
+  border-left-color: #4f8f5a;
+}
+
 .panel-header {
   display: flex;
   align-items: flex-start;
@@ -185,6 +236,11 @@ input[type="color"] {
   padding: 4px;
 }
 
+input[type="number"] {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
 #target-select {
   min-height: 148px;
   padding: 8px;
@@ -244,6 +300,17 @@ input[type="color"] {
 #edge-style-fields {
   display: grid;
   gap: 6px;
+}
+
+.warning-text {
+  margin: 2px 0 6px;
+  color: #9a5b1c;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.warning-text.hidden {
+  display: none;
 }
 
 .legend-panel {
@@ -338,6 +405,56 @@ input[type="color"] {
   font-size: 12px;
   line-height: 1.4;
   color: #5c6578;
+}
+
+.legend-editor-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(31, 36, 48, 0.34);
+}
+
+.legend-editor-modal.hidden {
+  display: none;
+}
+
+.legend-editor-card {
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100vh - 40px));
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(76, 86, 106, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 56px rgba(28, 36, 51, 0.26);
+}
+
+.legend-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.legend-editor-header button {
+  width: auto;
+  padding: 6px 10px;
+}
+
+#legend-editor-text {
+  width: 100%;
+  min-height: 380px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid rgba(76, 86, 106, 0.22);
+  border-radius: 10px;
+  font: 13px/1.45 Consolas, "Courier New", monospace;
+  color: #1f2430;
+  background: #f9fbff;
 }
 
 .guide-modal {

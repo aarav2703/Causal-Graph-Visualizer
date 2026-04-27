@@ -14,6 +14,7 @@ LEGEND_FILES = {
     "simple": ROOT / "sample v3 inputs" / "legend_simple.json",
     "complex_pag": ROOT / "sample v3 inputs" / "legend_complex_pag.json",
     "tetrad_complex_pag": ROOT / "sample v3 inputs" / "legend_tetrad_complex_pag.json",
+    "poster_infant_regulation": ROOT / "DS poster" / "graph_outputs" / "visualizer_graph_final_legend.json",
 }
 
 

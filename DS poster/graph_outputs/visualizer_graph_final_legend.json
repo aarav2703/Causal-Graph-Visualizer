@@ -1,0 +1,76 @@
+{
+    "title":  "Infant Regulation Graph Legend",
+    "subtitle":  "Legend for visualizer_graph_final.txt. Styling notes describe the graph metadata without changing the PC graph structure.",
+    "sections":  [
+                     {
+                         "heading":  "Node Groups",
+                         "items":  [
+                                       {
+                                           "symbol":  "target-highlight",
+                                           "label":  "Infant context",
+                                           "description":  "Infant_Age and Gestational_Age use the infant-context node color."
+                                       },
+                                       {
+                                           "symbol":  "target-highlight",
+                                           "label":  "Parent wellbeing",
+                                           "description":  "Parent_Wellbeing uses the parent-wellbeing node color."
+                                       },
+                                       {
+                                           "symbol":  "target-highlight",
+                                           "label":  "Crying",
+                                           "description":  "Crying_Frequency and Crying_Distress share the crying node color."
+                                       },
+                                       {
+                                           "symbol":  "target-highlight",
+                                           "label":  "Sleep",
+                                           "description":  "Sleep_Duration and Sleep_Problem share the sleep node color."
+                                       },
+                                       {
+                                           "symbol":  "target-highlight",
+                                           "label":  "Soothing",
+                                           "description":  "Soothing_Response uses the soothing node color."
+                                       },
+                                       {
+                                           "symbol":  "target-highlight",
+                                           "label":  "Feeding",
+                                           "description":  "Feeding_Ease and Feeding_Difficulty share the feeding node color."
+                                       }
+                                   ]
+                     },
+                     {
+                         "heading":  "Edge Types In This Graph",
+                         "items":  [
+                                       {
+                                           "symbol":  "tail-arrow",
+                                           "label":  "Directed edge",
+                                           "description":  "A -\u003e B is encoded as tail at the source and arrow at the target."
+                                       },
+                                       {
+                                           "symbol":  "tail-tail",
+                                           "label":  "Undirected edge",
+                                           "description":  "A -- B is encoded as a tail endpoint on both variables."
+                                       }
+                                   ]
+                     },
+                     {
+                         "heading":  "Edge Metadata",
+                         "items":  [
+                                       {
+                                           "symbol":  "tip",
+                                           "label":  "Weight",
+                                           "description":  "The TXT stores each edge weight in square brackets as weight=..., which the importer preserves as edge weight."
+                                       },
+                                       {
+                                           "symbol":  "tip",
+                                           "label":  "Confidence",
+                                           "description":  "The TXT stores bootstrap stability as confidence=..., which the importer preserves in edge attributes."
+                                       },
+                                       {
+                                           "symbol":  "tip",
+                                           "label":  "Labels",
+                                           "description":  "Use the viewer edge-label controls to show weight or confidence values on the graph."
+                                       }
+                                   ]
+                     }
+                 ]
+}

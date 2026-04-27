@@ -75,6 +75,12 @@
           <option value="beta">Beta / weight</option>
           <option value="confidence">Confidence</option>
         </select>
+        <label class="field-label" for="edge-alpha-strength">Transparency intensity</label>
+        <input id="edge-alpha-strength" type="range" min="0" max="2" step="0.05" value="1" />
+        <div class="metric-row">
+          <span>Alpha scale</span>
+          <strong id="edge-alpha-strength-label">1.00x</strong>
+        </div>
         <label class="field-label" for="edge-width-filter-mode">Edge thickness filter</label>
         <select id="edge-width-filter-mode">
           <option value="off">Off</option>
@@ -82,6 +88,12 @@
           <option value="beta">Beta / weight</option>
           <option value="confidence">Confidence</option>
         </select>
+        <label class="field-label" for="edge-width-strength">Thickness intensity</label>
+        <input id="edge-width-strength" type="range" min="0" max="2" step="0.05" value="1" />
+        <div class="metric-row">
+          <span>Width scale</span>
+          <strong id="edge-width-strength-label">1.00x</strong>
+        </div>
         <label class="field-label" for="edge-label-mode">Edge labels</label>
         <select id="edge-label-mode">
           <option value="auto">Auto</option>
@@ -137,6 +149,11 @@
 
     <main id="canvas-container">
       <canvas id="canvas"></canvas>
+      <section id="toast" class="toast hidden" role="status" aria-live="polite">
+        <strong id="toast-title">Status</strong>
+        <p id="toast-message"></p>
+        <button id="toast-close" type="button" aria-label="Dismiss message">Close</button>
+      </section>
       <section id="style-editor" class="style-editor hidden">
         <div class="style-editor-header">
           <strong id="style-editor-title">Edit Style</strong>
@@ -165,6 +182,11 @@
           <input id="style-edge-alpha" type="range" min="0.1" max="1" step="0.05" />
           <label class="field-label" for="style-edge-width">Width</label>
           <input id="style-edge-width" type="range" min="2" max="10" step="0.5" />
+          <label class="field-label" for="style-edge-weight">Weight / beta value</label>
+          <input id="style-edge-weight" type="number" step="0.01" />
+          <label class="field-label" for="style-edge-confidence">Confidence value</label>
+          <input id="style-edge-confidence" type="number" min="0" max="1" step="0.01" />
+          <p id="style-edge-value-warning" class="warning-text hidden">Editing these values changes them from the original graph input.</p>
           <label class="field-label" for="style-edge-bend">Edge bend</label>
           <input id="style-edge-bend" type="range" min="-100" max="100" step="1" value="0" />
           <div class="metric-row">
@@ -180,6 +202,24 @@
         </div>
         <p id="legend-subtitle" class="legend-subtitle"></p>
         <div id="legend-body" class="legend-body"></div>
+      </section>
+
+      <section id="legend-editor-modal" class="legend-editor-modal hidden" role="dialog" aria-modal="true" aria-labelledby="legend-editor-title">
+        <div class="legend-editor-card">
+          <div class="legend-editor-header">
+            <div>
+              <p class="eyebrow">Legend JSON</p>
+              <h2 id="legend-editor-title">Edit Legend</h2>
+            </div>
+            <button id="legend-editor-close" type="button">Close</button>
+          </div>
+          <textarea id="legend-editor-text" spellcheck="false"></textarea>
+          <p class="hint">Confirming applies the legend and saves a JSON download. Right-click the legend again to keep editing.</p>
+          <div class="button-grid">
+            <button id="legend-editor-apply" type="button">Confirm And Save JSON</button>
+            <button id="legend-editor-cancel" type="button">Cancel</button>
+          </div>
+        </div>
       </section>
 
       <section id="viewer-guide-modal" class="guide-modal hidden" role="dialog" aria-modal="true" aria-labelledby="viewer-guide-title">

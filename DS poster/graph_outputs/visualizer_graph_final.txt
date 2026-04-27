@@ -1,0 +1,14 @@
+Graph Nodes: Infant_Age; Gestational_Age; Parent_Wellbeing; Crying_Frequency; Crying_Distress; Sleep_Duration; Sleep_Problem; Soothing_Response; Feeding_Ease; Feeding_Difficulty
+Graph Edges:
+1. Crying_Distress -> Parent_Wellbeing [weight=0.2627, confidence=0.75]
+2. Crying_Frequency -- Crying_Distress [weight=0.3279, confidence=1.0]
+3. Crying_Frequency -> Infant_Age [weight=0.1473, confidence=0.55]
+4. Crying_Frequency -> Parent_Wellbeing [weight=0.2197, confidence=0.6]
+5. Crying_Frequency -- Soothing_Response [weight=0.1662, confidence=0.4]
+6. Feeding_Difficulty -> Infant_Age [weight=0.2969, confidence=0.8]
+7. Feeding_Difficulty -> Sleep_Duration [weight=0.3165, confidence=0.85]
+8. Feeding_Ease -- Feeding_Difficulty [weight=0.3582, confidence=1.0]
+9. Feeding_Ease -> Parent_Wellbeing [weight=0.2041, confidence=0.7]
+10. Sleep_Duration -> Infant_Age [weight=0.4283, confidence=1.0]
+11. Sleep_Problem -> Sleep_Duration [weight=0.1401, confidence=0.6]
+12. Soothing_Response -> Sleep_Duration [weight=0.1346, confidence=0.3]

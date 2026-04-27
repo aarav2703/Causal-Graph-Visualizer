@@ -13,7 +13,9 @@
       sidebar_width: 28,
       threshold: 0,
       edge_alpha_filter_mode: "off",
+      edge_alpha_strength: 1,
       edge_width_filter_mode: "off",
+      edge_width_strength: 1,
       edge_label_mode: "auto",
       edge_label_size: 12,
       target_color: "#4f7cff",
@@ -49,7 +51,8 @@
     "tetrad_complex_pag.txt": "tetrad_complex_pag",
     "causal_learn_complex_pag.txt": "complex_pag",
     "dagitty_complex_pag.txt": "complex_pag",
-    "dowhy_complex_pag.json": "complex_pag"
+    "dowhy_complex_pag.json": "complex_pag",
+    "visualizer_graph_final.txt": "poster_infant_regulation"
   };
 
   const dom = {
@@ -64,7 +67,11 @@
     thresholdSlider: document.getElementById("threshold-slider"),
     thresholdLabel: document.getElementById("threshold-label"),
     edgeAlphaFilterMode: document.getElementById("edge-alpha-filter-mode"),
+    edgeAlphaStrength: document.getElementById("edge-alpha-strength"),
+    edgeAlphaStrengthLabel: document.getElementById("edge-alpha-strength-label"),
     edgeWidthFilterMode: document.getElementById("edge-width-filter-mode"),
+    edgeWidthStrength: document.getElementById("edge-width-strength"),
+    edgeWidthStrengthLabel: document.getElementById("edge-width-strength-label"),
     edgeLabelMode: document.getElementById("edge-label-mode"),
     edgeLabelSize: document.getElementById("edge-label-size"),
     edgeLabelSizeLabel: document.getElementById("edge-label-size-label"),
@@ -86,6 +93,10 @@
     importLegendBtn: document.getElementById("import-legend-btn"),
     importStatus: document.getElementById("import-status"),
     status: document.getElementById("status"),
+    toast: document.getElementById("toast"),
+    toastTitle: document.getElementById("toast-title"),
+    toastMessage: document.getElementById("toast-message"),
+    toastClose: document.getElementById("toast-close"),
     styleEditor: document.getElementById("style-editor"),
     styleEditorTitle: document.getElementById("style-editor-title"),
     styleEditorClose: document.getElementById("style-editor-close"),
@@ -98,6 +109,9 @@
     edgeColorInput: document.getElementById("style-edge-color"),
     edgeAlphaInput: document.getElementById("style-edge-alpha"),
     edgeWidthInput: document.getElementById("style-edge-width"),
+    edgeWeightInput: document.getElementById("style-edge-weight"),
+    edgeConfidenceInput: document.getElementById("style-edge-confidence"),
+    edgeValueWarning: document.getElementById("style-edge-value-warning"),
     edgeBendInput: document.getElementById("style-edge-bend"),
     edgeBendLabel: document.getElementById("style-edge-bend-label"),
     legendPanel: document.getElementById("legend-panel"),
@@ -105,6 +119,11 @@
     legendTitle: document.getElementById("legend-title"),
     legendSubtitle: document.getElementById("legend-subtitle"),
     legendBody: document.getElementById("legend-body"),
+    legendEditorModal: document.getElementById("legend-editor-modal"),
+    legendEditorText: document.getElementById("legend-editor-text"),
+    legendEditorApply: document.getElementById("legend-editor-apply"),
+    legendEditorCancel: document.getElementById("legend-editor-cancel"),
+    legendEditorClose: document.getElementById("legend-editor-close"),
     viewerGuideModal: document.getElementById("viewer-guide-modal"),
     viewerGuideCard: document.getElementById("viewer-guide-card"),
     viewerGuideClose: document.getElementById("viewer-guide-close")
@@ -130,6 +149,8 @@
     legendDragActive: false,
     legendDragOffsetX: 0,
     legendDragOffsetY: 0,
+    currentLegend: null,
+    currentLegendKey: null,
     graphName: "",
     graphType: "",
     originalGraph: null,
@@ -141,12 +162,71 @@
     idToIndex: new Map()
   };
 
-  function setStatus(message) {
-    dom.status.textContent = message;
+  let toastTimer = null;
+
+  function classifyMessage(message) {
+    const text = String(message || "").toLowerCase();
+    if (
+      text.includes("error") ||
+      text.includes("failed") ||
+      text.includes("unsupported") ||
+      text.includes("unreachable") ||
+      text.includes("not found") ||
+      text.includes("unknown") ||
+      text.includes("choose a file") ||
+      text.includes("choose a session") ||
+      text.includes("no file selected") ||
+      text.includes("import a graph")
+    ) {
+      return "error";
+    }
+    if (
+      text.includes("warning") ||
+      text.includes("differs from the original") ||
+      text.includes("changed from the original") ||
+      text.includes("not enabled")
+    ) {
+      return "warning";
+    }
+    if (
+      text.includes("loaded") ||
+      text.includes("saved") ||
+      text.includes("exported") ||
+      text.includes("imported")
+    ) {
+      return "success";
+    }
+    return "info";
   }
 
-  function setImportStatus(message) {
+  function showToast(message, severity = "info") {
+    if (!message) return;
+    clearTimeout(toastTimer);
+    dom.toast.className = `toast toast-${severity}`;
+    dom.toastTitle.textContent =
+      severity === "error" ? "Needs attention" :
+      severity === "warning" ? "Heads up" :
+      severity === "success" ? "Done" :
+      "Status";
+    dom.toastMessage.textContent = message;
+    dom.toast.classList.remove("hidden");
+    toastTimer = window.setTimeout(() => {
+      dom.toast.classList.add("hidden");
+    }, severity === "error" ? 9000 : 5200);
+  }
+
+  function setStatus(message, options = {}) {
+    dom.status.textContent = message;
+    if (options.popup !== false) {
+      showToast(message, options.severity || classifyMessage(message));
+    }
+  }
+
+  function setImportStatus(message, options = {}) {
     dom.importStatus.textContent = message;
+    if (options.popup !== false) {
+      showToast(message, options.severity || classifyMessage(message));
+    }
   }
 
   function hexToRgba(hex, alpha = 1) {
@@ -248,7 +328,9 @@
       sidebar_width: Number(dom.widthSlider.value),
       threshold: Number(dom.thresholdSlider.value),
       edge_alpha_filter_mode: dom.edgeAlphaFilterMode.value,
+      edge_alpha_strength: Number(dom.edgeAlphaStrength.value),
       edge_width_filter_mode: dom.edgeWidthFilterMode.value,
+      edge_width_strength: Number(dom.edgeWidthStrength.value),
       edge_label_mode: dom.edgeLabelMode.value,
       edge_label_size: Number(dom.edgeLabelSize.value),
       target_color: dom.targetColor.value,
@@ -265,7 +347,11 @@
     dom.thresholdSlider.value = String(prefs.threshold);
     dom.thresholdLabel.textContent = `${dom.thresholdSlider.value}%`;
     dom.edgeAlphaFilterMode.value = prefs.edge_alpha_filter_mode;
+    dom.edgeAlphaStrength.value = String(prefs.edge_alpha_strength);
+    dom.edgeAlphaStrengthLabel.textContent = `${Number(dom.edgeAlphaStrength.value).toFixed(2)}x`;
     dom.edgeWidthFilterMode.value = prefs.edge_width_filter_mode;
+    dom.edgeWidthStrength.value = String(prefs.edge_width_strength);
+    dom.edgeWidthStrengthLabel.textContent = `${Number(dom.edgeWidthStrength.value).toFixed(2)}x`;
     dom.edgeLabelMode.value = prefs.edge_label_mode;
     dom.edgeLabelSize.value = String(prefs.edge_label_size);
     dom.edgeLabelSizeLabel.textContent = `${dom.edgeLabelSize.value}px`;
@@ -421,7 +507,9 @@
     const baseColor = edge.displayColor;
     if (dom.edgeAlphaFilterMode.value === "off") return baseColor;
     const metric = inferEdgeTransparencyMetric(edge);
-    const multiplier = 0.18 + 0.82 * metric;
+    const strength = Number(dom.edgeAlphaStrength.value);
+    const defaultMultiplier = 0.18 + 0.82 * metric;
+    const multiplier = clamp(1 + (defaultMultiplier - 1) * strength, 0.08, 1);
     return applyAlphaMultiplier(baseColor, multiplier);
   }
 
@@ -430,7 +518,9 @@
     const mode = dom.edgeWidthFilterMode.value;
     if (mode === "off") return baseWidth;
     const metric = inferEdgeMetricForMode(edge, mode);
-    const widthScale = 0.45 + 1.55 * metric;
+    const strength = Number(dom.edgeWidthStrength.value);
+    const defaultWidthScale = 0.45 + 1.55 * metric;
+    const widthScale = 1 + (defaultWidthScale - 1) * strength;
     return clamp(baseWidth * widthScale, 1.5, 16);
   }
 
@@ -589,6 +679,36 @@
   function hasVisibleEdgeLabels() {
     if (dom.edgeLabelMode.value === "none") return false;
     return state.edges.some((edge) => !edge.hidden && getEdgeLabelText(edge));
+  }
+
+  function describeEdgeLabelMode() {
+    const mode = dom.edgeLabelMode.value;
+    if (mode === "weight") return "Edge labels are currently showing weight / beta values.";
+    if (mode === "confidence") return "Edge labels are currently showing confidence values.";
+    if (mode === "auto") return "Edge labels are currently showing weight / beta when available, otherwise confidence.";
+    return "Edge labels are currently hidden.";
+  }
+
+  function updateLegendLabelModeNote() {
+    if (dom.legendPanel.classList.contains("hidden")) return;
+    let note = dom.legendBody.querySelector("[data-dynamic-label-mode]");
+    if (!note) {
+      note = document.createElement("section");
+      note.className = "legend-section";
+      note.dataset.dynamicLabelMode = "true";
+      note.innerHTML = `
+        <h3>Current Edge Labels</h3>
+        <div class="legend-item">
+          <div class="legend-symbol">Tip</div>
+          <div class="legend-copy">
+            <strong>Label mode</strong>
+            <p></p>
+          </div>
+        </div>
+      `;
+      dom.legendBody.appendChild(note);
+    }
+    note.querySelector("p").textContent = describeEdgeLabelMode();
   }
 
   function getQuadraticPoint(start, control, end, t) {
@@ -827,6 +947,9 @@
       weight: edge.weight,
       attributes: edge.attributes || {},
       viz: edge.viz || {},
+      originalWeight: edge.weight,
+      originalConfidence: edge.attributes?.confidence,
+      valueEdited: false,
       hidden: false,
       strength: inferEdgeStrength(edge),
       displayColor: inferEdgeColor(edge),
@@ -851,6 +974,8 @@
     state.originalGraph = null;
     state.originalFilename = null;
     state.currentFilename = null;
+    state.currentLegend = null;
+    state.currentLegendKey = null;
     state.nodes = [];
     state.edges = [];
     state.idToIndex = new Map();
@@ -1307,6 +1432,7 @@
   function hideLegend() {
     state.legendDragActive = false;
     dom.legendPanel.classList.add("hidden");
+    hideLegendEditor();
   }
 
   function showViewerGuide() {
@@ -1315,6 +1441,10 @@
 
   function hideViewerGuide() {
     dom.viewerGuideModal.classList.add("hidden");
+  }
+
+  function hideLegendEditor() {
+    dom.legendEditorModal.classList.add("hidden");
   }
 
   function inferLegendKey() {
@@ -1347,6 +1477,7 @@
 
   function renderLegend(legend, clientX, clientY) {
     // Materialize legend JSON into the draggable floating legend panel.
+    state.currentLegend = cloneData(legend);
     dom.legendTitle.textContent = legend.title || "Legend";
     dom.legendSubtitle.textContent = legend.subtitle || "";
     dom.legendBody.innerHTML = "";
@@ -1355,7 +1486,7 @@
       const sectionEl = document.createElement("section");
       sectionEl.className = "legend-section";
       const heading = document.createElement("h3");
-      heading.textContent = section.heading || "";
+      heading.textContent = section.heading || section.title || "";
       sectionEl.appendChild(heading);
 
       (section.items || []).forEach((item) => {
@@ -1364,6 +1495,7 @@
 
         const symbol = document.createElement("div");
         symbol.className = "legend-symbol";
+        symbol.dataset.symbol = item.symbol || "";
         symbol.textContent = renderLegendSymbol(item.symbol);
 
         const copy = document.createElement("div");
@@ -1371,7 +1503,7 @@
         const label = document.createElement("strong");
         label.textContent = item.label || "";
         const description = document.createElement("p");
-        description.textContent = item.description || "";
+        description.textContent = item.description || item.meaning || "";
         copy.appendChild(label);
         copy.appendChild(description);
 
@@ -1382,13 +1514,13 @@
 
       dom.legendBody.appendChild(sectionEl);
     });
-
     const rect = dom.canvasContainer.getBoundingClientRect();
     const desiredLeft = Math.max(12, clientX - rect.left);
     const desiredTop = Math.max(12, clientY - rect.top);
     dom.legendPanel.style.left = `${desiredLeft}px`;
     dom.legendPanel.style.top = `${desiredTop}px`;
     dom.legendPanel.classList.remove("hidden");
+    updateLegendLabelModeNote();
 
     // After layout, clamp the panel fully inside the canvas area without adding a scrollbar.
     const legendRect = dom.legendPanel.getBoundingClientRect();
@@ -1396,6 +1528,68 @@
     const maxTop = Math.max(12, rect.height - legendRect.height - 12);
     dom.legendPanel.style.left = `${Math.min(desiredLeft, maxLeft)}px`;
     dom.legendPanel.style.top = `${Math.min(desiredTop, maxTop)}px`;
+  }
+
+  function legendFromDom() {
+    const sections = [...dom.legendBody.querySelectorAll(".legend-section")]
+      .filter((section) => !section.dataset.dynamicLabelMode)
+      .map((section) => ({
+        heading: section.querySelector("h3")?.textContent || "",
+        items: [...section.querySelectorAll(".legend-item")].map((item) => ({
+          symbol: item.querySelector(".legend-symbol")?.dataset.symbol || item.querySelector(".legend-symbol")?.textContent || "tip",
+          label: item.querySelector(".legend-copy strong")?.textContent || "",
+          description: item.querySelector(".legend-copy p")?.textContent || ""
+        }))
+      }));
+
+    return {
+      title: dom.legendTitle.textContent || "Legend",
+      subtitle: dom.legendSubtitle.textContent || "",
+      sections
+    };
+  }
+
+  function showLegendEditor() {
+    if (dom.legendPanel.classList.contains("hidden")) {
+      setStatus("Load a legend before editing it.");
+      return;
+    }
+    const legend = state.currentLegend || legendFromDom();
+    dom.legendEditorText.value = JSON.stringify(legend, null, 2);
+    dom.legendEditorModal.classList.remove("hidden");
+  }
+
+  function saveLegendJson(legend) {
+    const blob = new Blob([JSON.stringify(legend, null, 2)], { type: "application/json" });
+    const key = state.currentLegendKey || state.currentFilename || state.graphName || "legend";
+    const filenameBase = String(key).replace(/[^a-z0-9-_]+/gi, "_");
+    downloadBlob(`${filenameBase}_legend.json`, blob);
+  }
+
+  function applyLegendEditor() {
+    let legend;
+    try {
+      legend = JSON.parse(dom.legendEditorText.value);
+    } catch (error) {
+      setStatus(`Legend JSON is invalid: ${error.message}`);
+      return;
+    }
+    if (!legend || !Array.isArray(legend.sections)) {
+      setStatus("Legend JSON must include a sections array.");
+      return;
+    }
+    const confirmed = window.confirm(
+      "Apply these legend changes and save them as a JSON download?"
+    );
+    if (!confirmed) return;
+
+    const left = parseFloat(dom.legendPanel.style.left || "28");
+    const top = parseFloat(dom.legendPanel.style.top || "28");
+    const rect = dom.canvasContainer.getBoundingClientRect();
+    renderLegend(legend, rect.left + left, rect.top + top);
+    saveLegendJson(legend);
+    hideLegendEditor();
+    setStatus("Legend changes applied and saved to JSON.");
   }
 
   async function loadLegendAtPosition(clientX, clientY) {
@@ -1420,6 +1614,7 @@
       return;
     }
 
+    state.currentLegendKey = payload.key;
     renderLegend(payload.legend, clientX, clientY);
     setStatus(`Loaded ${payload.key} legend.`);
   }
@@ -1482,6 +1677,10 @@
       dom.edgeColorInput.value = rgbaToHex(edge.viz?.color || edge.displayColor);
       dom.edgeAlphaInput.value = String(rgbaAlpha(edge.viz?.color || edge.displayColor));
       dom.edgeWidthInput.value = String(edge.width || 4);
+      dom.edgeWeightInput.value = typeof edge.weight === "number" ? String(edge.weight) : "";
+      dom.edgeConfidenceInput.value =
+        typeof edge.attributes.confidence === "number" ? String(edge.attributes.confidence) : "";
+      dom.edgeValueWarning.classList.toggle("hidden", !edge.valueEdited);
       const bend = inferEdgeBend(edge);
       dom.edgeBendInput.value = String(Math.round(bend * 100));
       dom.edgeBendLabel.textContent = describeEdgeBend(bend);
@@ -1503,8 +1702,21 @@
     } else {
       const edge = state.edges[state.styleTarget.index];
       edge.viz = edge.viz || {};
+      edge.attributes = edge.attributes || {};
       edge.viz.color = hexToRgba(dom.edgeColorInput.value, Number(dom.edgeAlphaInput.value));
       edge.viz.width = Number(dom.edgeWidthInput.value);
+      const nextWeight = dom.edgeWeightInput.value === "" ? undefined : Number(dom.edgeWeightInput.value);
+      const nextConfidence = dom.edgeConfidenceInput.value === "" ? undefined : Number(dom.edgeConfidenceInput.value);
+      edge.weight = Number.isFinite(nextWeight) ? nextWeight : undefined;
+      if (Number.isFinite(nextConfidence)) {
+        edge.attributes.confidence = clamp(nextConfidence, 0, 1);
+        dom.edgeConfidenceInput.value = String(edge.attributes.confidence);
+      } else {
+        delete edge.attributes.confidence;
+      }
+      const weightChanged = edge.weight !== edge.originalWeight;
+      const confidenceChanged = edge.attributes.confidence !== edge.originalConfidence;
+      edge.valueEdited = weightChanged || confidenceChanged;
       edge.viz.curveBend = Number(dom.edgeBendInput.value) / 100;
       delete edge.viz.curveMode;
       delete edge.viz.curveDirection;
@@ -1512,6 +1724,10 @@
       edge.displayColor = edge.viz.color;
       edge.width = edge.viz.width;
       dom.edgeBendLabel.textContent = describeEdgeBend(edge.viz.curveBend);
+      dom.edgeValueWarning.classList.toggle("hidden", !edge.valueEdited);
+      if (edge.valueEdited) {
+        setStatus("Edge value edited. This differs from the original graph input.");
+      }
     }
     draw();
   }
@@ -1658,7 +1874,9 @@
         selected_targets: getSelectedTargets().map((index) => state.nodes[index]?.id).filter(Boolean),
         threshold: Number(dom.thresholdSlider.value),
         edge_alpha_filter_mode: dom.edgeAlphaFilterMode.value,
+        edge_alpha_strength: Number(dom.edgeAlphaStrength.value),
         edge_width_filter_mode: dom.edgeWidthFilterMode.value,
+        edge_width_strength: Number(dom.edgeWidthStrength.value),
         edge_label_mode: dom.edgeLabelMode.value,
         edge_label_size: Number(dom.edgeLabelSize.value),
         sidebar_width: Number(dom.widthSlider.value),
@@ -1676,7 +1894,9 @@
               subtitle: dom.legendSubtitle.textContent || "",
               left: dom.legendPanel.style.left || "28px",
               top: dom.legendPanel.style.top || "28px",
-              body_html: dom.legendBody.innerHTML
+              body_html: dom.legendBody.innerHTML,
+              legend_json: state.currentLegend ? cloneData(state.currentLegend) : legendFromDom(),
+              legend_key: state.currentLegendKey
             }
       }
     };
@@ -1713,6 +1933,8 @@
     dom.legendTitle.textContent = legendState.title || "Legend";
     dom.legendSubtitle.textContent = legendState.subtitle || "";
     dom.legendBody.innerHTML = legendState.body_html || "";
+    state.currentLegend = legendState.legend_json || legendFromDom();
+    state.currentLegendKey = legendState.legend_key || null;
     dom.legendPanel.style.left = legendState.left || "28px";
     dom.legendPanel.style.top = legendState.top || "28px";
     dom.legendPanel.classList.remove("hidden");
@@ -1745,7 +1967,11 @@
     dom.thresholdSlider.value = String(ui.threshold ?? 50);
     dom.thresholdLabel.textContent = `${dom.thresholdSlider.value}%`;
     dom.edgeAlphaFilterMode.value = ui.edge_alpha_filter_mode || "off";
+    dom.edgeAlphaStrength.value = String(ui.edge_alpha_strength ?? 1);
+    dom.edgeAlphaStrengthLabel.textContent = `${Number(dom.edgeAlphaStrength.value).toFixed(2)}x`;
     dom.edgeWidthFilterMode.value = ui.edge_width_filter_mode || "off";
+    dom.edgeWidthStrength.value = String(ui.edge_width_strength ?? 1);
+    dom.edgeWidthStrengthLabel.textContent = `${Number(dom.edgeWidthStrength.value).toFixed(2)}x`;
     dom.edgeLabelMode.value = ui.edge_label_mode || "none";
     dom.edgeLabelSize.value = String(ui.edge_label_size ?? 12);
     dom.edgeLabelSizeLabel.textContent = `${dom.edgeLabelSize.value}px`;
@@ -1923,12 +2149,23 @@
       draw();
       syncPreferencesFromControls();
     });
+    dom.edgeAlphaStrength.addEventListener("input", () => {
+      dom.edgeAlphaStrengthLabel.textContent = `${Number(dom.edgeAlphaStrength.value).toFixed(2)}x`;
+      draw();
+      syncPreferencesFromControls();
+    });
     dom.edgeWidthFilterMode.addEventListener("input", () => {
+      draw();
+      syncPreferencesFromControls();
+    });
+    dom.edgeWidthStrength.addEventListener("input", () => {
+      dom.edgeWidthStrengthLabel.textContent = `${Number(dom.edgeWidthStrength.value).toFixed(2)}x`;
       draw();
       syncPreferencesFromControls();
     });
     dom.edgeLabelMode.addEventListener("input", () => {
       draw();
+      updateLegendLabelModeNote();
       syncPreferencesFromControls();
     });
     dom.edgeLabelSize.addEventListener("input", () => {
@@ -1999,9 +2236,19 @@
     dom.legendPanel.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      setStatus("Legend editing is not enabled yet. Current legend content comes from JSON, not markdown.");
+      showLegendEditor();
+    });
+    dom.legendEditorApply.addEventListener("click", applyLegendEditor);
+    dom.legendEditorCancel.addEventListener("click", hideLegendEditor);
+    dom.legendEditorClose.addEventListener("click", hideLegendEditor);
+    dom.legendEditorModal.addEventListener("click", (event) => {
+      if (event.target === dom.legendEditorModal) hideLegendEditor();
     });
     dom.viewerGuideClose.addEventListener("click", hideViewerGuide);
+    dom.toastClose.addEventListener("click", () => {
+      clearTimeout(toastTimer);
+      dom.toast.classList.add("hidden");
+    });
     dom.viewerGuideModal.addEventListener("click", (event) => {
       if (event.target === dom.viewerGuideModal) {
         hideViewerGuide();
@@ -2015,6 +2262,8 @@
       dom.edgeColorInput,
       dom.edgeAlphaInput,
       dom.edgeWidthInput,
+      dom.edgeWeightInput,
+      dom.edgeConfidenceInput,
       dom.edgeBendInput
     ].forEach((element) => element.addEventListener("input", applyStyleEditor));
 
@@ -2175,8 +2424,8 @@
     bindEvents();
     applyGlobalPreferencesToControls();
     clearGraph();
-    setStatus("No graph loaded.");
-    setImportStatus("Choose a graph file to import, or load a saved session.");
+    setStatus("No graph loaded.", { popup: false });
+    setImportStatus("Choose a graph file to import, or load a saved session.", { popup: false });
     showViewerGuide();
   }
 

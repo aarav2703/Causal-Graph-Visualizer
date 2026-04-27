@@ -1,0 +1,12 @@
+Crying_Distress -> Parent_Wellbeing
+Crying_Frequency -- Crying_Distress
+Crying_Frequency -> Infant_Age
+Crying_Frequency -> Parent_Wellbeing
+Crying_Frequency -- Soothing_Response
+Feeding_Difficulty -> Infant_Age
+Feeding_Difficulty -> Sleep_Duration
+Feeding_Ease -- Feeding_Difficulty
+Feeding_Ease -> Parent_Wellbeing
+Sleep_Duration -> Infant_Age
+Sleep_Problem -> Sleep_Duration
+Soothing_Response -> Sleep_Duration
