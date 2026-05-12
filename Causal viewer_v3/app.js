@@ -83,6 +83,19 @@
     saveSessionBtn: document.getElementById("save-session-btn"),
     loadSessionBtn: document.getElementById("load-session-btn"),
     exportImageBtn: document.getElementById("export-image-btn"),
+    exportModal: document.getElementById("export-modal"),
+    exportModalClose: document.getElementById("export-modal-close"),
+    exportModalType: document.getElementById("export-modal-type"),
+    exportScale: document.getElementById("export-scale"),
+    exportScaleLabel: document.getElementById("export-scale-label"),
+    exportDpi: document.getElementById("export-dpi"),
+    exportQuality: document.getElementById("export-quality"),
+    exportQualityLabel: document.getElementById("export-quality-label"),
+    exportBackground: document.getElementById("export-background"),
+    exportIncludeLegend: document.getElementById("export-include-legend"),
+    exportSizeLabel: document.getElementById("export-size-label"),
+    exportConfirmBtn: document.getElementById("export-confirm-btn"),
+    exportCancelBtn: document.getElementById("export-cancel-btn"),
     exportLayoutBtn: document.getElementById("export-layout-btn"),
     resetViewBtn: document.getElementById("reset-view-btn"),
     viewerGuideBtn: document.getElementById("viewer-guide-btn"),
@@ -683,10 +696,10 @@
 
   function describeEdgeLabelMode() {
     const mode = dom.edgeLabelMode.value;
-    if (mode === "weight") return "Edge labels are currently showing weight / beta values.";
-    if (mode === "confidence") return "Edge labels are currently showing confidence values.";
-    if (mode === "auto") return "Edge labels are currently showing weight / beta when available, otherwise confidence.";
-    return "Edge labels are currently hidden.";
+    if (mode === "weight") return "Showing weight / beta.";
+    if (mode === "confidence") return "Showing confidence.";
+    if (mode === "auto") return "Showing weight / beta, then confidence.";
+    return "Hidden.";
   }
 
   function updateLegendLabelModeNote() {
@@ -697,11 +710,11 @@
       note.className = "legend-section";
       note.dataset.dynamicLabelMode = "true";
       note.innerHTML = `
-        <h3>Current Edge Labels</h3>
+        <h3>Labels</h3>
         <div class="legend-item">
           <div class="legend-symbol">Tip</div>
           <div class="legend-copy">
-            <strong>Label mode</strong>
+            <strong>Mode</strong>
             <p></p>
           </div>
         </div>
@@ -1212,8 +1225,8 @@
     } else if (edge.endpoints.target === "circle") {
       drawCircleEndpoint(
         context,
-        geometry.end.x + 6 * Math.cos(targetAngle),
-        geometry.end.y + 6 * Math.sin(targetAngle),
+        geometry.end.x - 6 * Math.cos(targetAngle),
+        geometry.end.y - 6 * Math.sin(targetAngle),
         6
       );
     }
@@ -1232,8 +1245,8 @@
     } else if (edge.endpoints.source === "circle") {
       drawCircleEndpoint(
         context,
-        geometry.start.x - 6 * Math.cos(sourceAngle),
-        geometry.start.y - 6 * Math.sin(sourceAngle),
+        geometry.start.x + 6 * Math.cos(sourceAngle),
+        geometry.start.y + 6 * Math.sin(sourceAngle),
         6
       );
     }
@@ -1247,20 +1260,65 @@
 
     const left = parseFloat(dom.legendPanel.style.left || "28");
     const top = parseFloat(dom.legendPanel.style.top || "28");
-    const width = Math.min(320, context.canvas.width - left - 16);
+    const logicalWidth = dom.canvas.width || context.canvas.width;
+    const width = Math.max(260, Math.min(420, logicalWidth - left - 16));
     let y = top;
 
     context.save();
-    context.fillStyle = "rgba(255, 255, 255, 0.97)";
-    context.strokeStyle = "rgba(76, 86, 106, 0.2)";
-    context.lineWidth = 1;
-    const lineHeight = 18;
+    const symbolWidth = 72;
+    const padding = 12;
+    const copyX = left + padding + symbolWidth + 12;
+    const copyWidth = Math.max(120, width - symbolWidth - padding * 3);
     const title = dom.legendTitle.textContent || "Legend";
     const subtitle = dom.legendSubtitle.textContent || "";
     const sections = [...dom.legendBody.querySelectorAll(".legend-section")];
-    const estimatedHeight = 60 + sections.reduce((sum, section) => {
-      return sum + 26 + section.querySelectorAll(".legend-item").length * 42;
-    }, 0);
+
+    function wrapCanvasText(text, maxWidth, font) {
+      context.font = font;
+      const words = String(text || "").split(/\s+/).filter(Boolean);
+      const lines = [];
+      let line = "";
+      words.forEach((word) => {
+        const next = line ? `${line} ${word}` : word;
+        if (context.measureText(next).width <= maxWidth || !line) {
+          line = next;
+        } else {
+          lines.push(line);
+          line = word;
+        }
+      });
+      if (line) lines.push(line);
+      return lines.length ? lines : [""];
+    }
+
+    const subtitleLines = subtitle ? wrapCanvasText(subtitle, width - padding * 2, "12px Segoe UI") : [];
+    const sectionLayouts = sections.map((section) => ({
+      heading: section.querySelector("h3")?.textContent || "",
+      items: [...section.querySelectorAll(".legend-item")].map((item) => {
+        const descriptionLines = wrapCanvasText(
+          item.querySelector(".legend-copy p")?.textContent || "",
+          copyWidth,
+          "12px Segoe UI"
+        );
+        return {
+          symbol: item.querySelector(".legend-symbol")?.textContent || "",
+          label: item.querySelector(".legend-copy strong")?.textContent || "",
+          descriptionLines,
+          height: Math.max(34, 22 + descriptionLines.length * 14)
+        };
+      })
+    }));
+
+    const estimatedHeight =
+      44 +
+      subtitleLines.length * 15 +
+      sectionLayouts.reduce((sum, section) => {
+        return sum + 26 + section.items.reduce((itemSum, item) => itemSum + item.height + 8, 0);
+      }, 0);
+
+    context.fillStyle = "rgba(255, 255, 255, 0.97)";
+    context.strokeStyle = "rgba(76, 86, 106, 0.2)";
+    context.lineWidth = 1;
     context.beginPath();
     context.roundRect(left, top, width, estimatedHeight, 14);
     context.fill();
@@ -1276,51 +1334,57 @@
     if (subtitle) {
       context.fillStyle = "#5c6578";
       context.font = "12px Segoe UI";
-      context.fillText(subtitle, left + 12, y);
-      y += 28;
+      subtitleLines.forEach((line) => {
+        context.fillText(line, left + padding, y);
+        y += 15;
+      });
+      y += 12;
     }
 
-    sections.forEach((section) => {
-      const heading = section.querySelector("h3")?.textContent || "";
+    sectionLayouts.forEach((section) => {
+      const heading = section.heading;
       context.fillStyle = "#485165";
       context.font = "bold 12px Segoe UI";
-      context.fillText(heading, left + 12, y);
+      context.fillText(heading, left + padding, y);
       y += 20;
 
-      [...section.querySelectorAll(".legend-item")].forEach((item) => {
-        const symbol = item.querySelector(".legend-symbol")?.textContent || "";
-        const label = item.querySelector(".legend-copy strong")?.textContent || "";
-        const description = item.querySelector(".legend-copy p")?.textContent || "";
-
+      section.items.forEach((item) => {
         context.fillStyle = "rgba(232, 236, 244, 0.9)";
         context.strokeStyle = "rgba(76, 86, 106, 0.14)";
         context.beginPath();
-        context.roundRect(left + 12, y, 72, 28, 10);
+        context.roundRect(left + padding, y, symbolWidth, 28, 10);
         context.fill();
         context.stroke();
 
         context.fillStyle = "#334";
         context.font = "12px Segoe UI";
-        context.fillText(symbol, left + 20, y + 7);
+        context.fillText(item.symbol, left + 20, y + 7);
 
         context.fillStyle = "#1f2430";
         context.font = "bold 13px Segoe UI";
-        context.fillText(label, left + 96, y + 2);
+        context.fillText(item.label, copyX, y + 2);
 
         context.fillStyle = "#5c6578";
         context.font = "12px Segoe UI";
-        context.fillText(description, left + 96, y + 18);
-        y += 42;
+        item.descriptionLines.forEach((line, index) => {
+          context.fillText(line, copyX, y + 18 + index * 14);
+        });
+        y += item.height + 8;
       });
       y += 6;
     });
     context.restore();
   }
 
-  function renderScene(context) {
+  function renderScene(context, options = {}) {
     // Single-pass renderer for the graph canvas.
-    context.fillStyle = BACKGROUND;
-    context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+    const background = options.background || "viewer";
+    if (background !== "transparent") {
+      context.fillStyle = background === "white" ? "#ffffff" : BACKGROUND;
+      context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+    } else {
+      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    }
 
     if (state.nodes.length === 0) {
       context.fillStyle = "rgba(56, 64, 80, 0.7)";
@@ -2002,18 +2066,53 @@
     URL.revokeObjectURL(url);
   }
 
-  function getExportCanvas() {
+  function updateExportSizeLabel() {
+    const scale = Number(dom.exportScale.value);
+    const width = Math.round(dom.canvas.width * scale);
+    const height = Math.round(dom.canvas.height * scale);
+    dom.exportScaleLabel.textContent = `${scale.toFixed(2)}x`;
+    dom.exportQualityLabel.textContent = Number(dom.exportQuality.value).toFixed(2);
+    dom.exportSizeLabel.textContent = `Output size: ${width} x ${height}px at ${Number(dom.exportDpi.value)} DPI metadata.`;
+  }
+
+  function showExportModal() {
+    if (state.nodes.length === 0) {
+      setStatus("Import a graph before exporting an image.");
+      return;
+    }
+    dom.exportModalType.value = dom.exportType.value;
+    dom.exportIncludeLegend.checked = !dom.legendPanel.classList.contains("hidden");
+    updateExportSizeLabel();
+    dom.exportModal.classList.remove("hidden");
+  }
+
+  function hideExportModal() {
+    dom.exportModal.classList.add("hidden");
+  }
+
+  function renderExportScene(context, options) {
+    const scale = options.scale || 1;
+    context.save();
+    context.scale(scale, scale);
+    renderScene(context, { background: options.background });
+    if (options.includeLegend) {
+      drawLegendToCanvas(context);
+    }
+    context.restore();
+  }
+
+  function getExportCanvas(options = {}) {
     // Render into an offscreen canvas so export does not depend on the visible DOM canvas.
+    const scale = options.scale || 1;
     const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = dom.canvas.width;
-    exportCanvas.height = dom.canvas.height;
+    exportCanvas.width = Math.round(dom.canvas.width * scale);
+    exportCanvas.height = Math.round(dom.canvas.height * scale);
     const exportCtx = exportCanvas.getContext("2d");
-    renderScene(exportCtx);
-    drawLegendToCanvas(exportCtx);
+    renderExportScene(exportCtx, options);
     return exportCanvas;
   }
 
-  function exportCanvasAsSvgBlob(exportCanvas) {
+  function exportCanvasAsSvgBlob(exportCanvas, options) {
     // Wrap the raster export in SVG for a lightweight SVG download path.
     const pngDataUrl = exportCanvas.toDataURL("image/png");
     const svg = [
@@ -2024,14 +2123,22 @@
     return new Blob([svg], { type: "image/svg+xml" });
   }
 
-  async function exportImage() {
+  async function exportImage(options = null) {
     // Export the current view using the selected image format.
-    const type = dom.exportType.value;
-    const exportCanvas = getExportCanvas();
+    const exportOptions = options || {
+      type: dom.exportType.value,
+      scale: 1,
+      dpi: 300,
+      quality: 1,
+      background: "viewer",
+      includeLegend: !dom.legendPanel.classList.contains("hidden")
+    };
+    const type = exportOptions.type;
+    const exportCanvas = getExportCanvas(exportOptions);
     const baseName = (state.graphName || "causal-viewer-v3").replace(/[^a-z0-9-_]+/gi, "_");
 
     if (type === "svg") {
-      downloadBlob(`${baseName}.svg`, exportCanvasAsSvgBlob(exportCanvas));
+      downloadBlob(`${baseName}_${exportOptions.dpi}dpi.svg`, exportCanvasAsSvgBlob(exportCanvas, exportOptions));
       setStatus("Exported image as SVG.");
       return;
     }
@@ -2042,14 +2149,28 @@
       webp: "image/webp"
     };
     const mime = mimeByType[type] || "image/png";
-    const blob = await new Promise((resolve) => exportCanvas.toBlob(resolve, mime, 1));
+    const blob = await new Promise((resolve) => exportCanvas.toBlob(resolve, mime, exportOptions.quality));
     if (!blob) {
       setStatus("Image export failed.");
       return;
     }
     const extension = type === "jpeg" ? "jpg" : type;
-    downloadBlob(`${baseName}.${extension}`, blob);
-    setStatus(`Exported image as ${extension.toUpperCase()}.`);
+    downloadBlob(`${baseName}_${exportOptions.dpi}dpi_${exportOptions.scale}x.${extension}`, blob);
+    setStatus(`Exported image as ${extension.toUpperCase()} (${Math.round(exportCanvas.width)} x ${Math.round(exportCanvas.height)}px).`);
+  }
+
+  function exportFromModal() {
+    const options = {
+      type: dom.exportModalType.value,
+      scale: Number(dom.exportScale.value),
+      dpi: Number(dom.exportDpi.value),
+      quality: Number(dom.exportQuality.value),
+      background: dom.exportBackground.value,
+      includeLegend: dom.exportIncludeLegend.checked
+    };
+    dom.exportType.value = options.type;
+    syncPreferencesFromControls();
+    exportImage(options).then(hideExportModal).catch((error) => setStatus(String(error)));
   }
 
   async function importGraphFromFile() {
@@ -2186,8 +2307,22 @@
     });
     dom.viewerGuideBtn.addEventListener("click", showViewerGuide);
     dom.exportImageBtn.addEventListener("click", () => {
-      exportImage().catch((error) => setStatus(String(error)));
+      showExportModal();
     });
+    dom.exportModalClose.addEventListener("click", hideExportModal);
+    dom.exportCancelBtn.addEventListener("click", hideExportModal);
+    dom.exportConfirmBtn.addEventListener("click", exportFromModal);
+    dom.exportModal.addEventListener("click", (event) => {
+      if (event.target === dom.exportModal) hideExportModal();
+    });
+    [
+      dom.exportModalType,
+      dom.exportScale,
+      dom.exportDpi,
+      dom.exportQuality,
+      dom.exportBackground,
+      dom.exportIncludeLegend
+    ].forEach((element) => element.addEventListener("input", updateExportSizeLabel));
     dom.exportLayoutBtn.addEventListener("click", exportLayoutSnapshot);
     dom.resetViewBtn.addEventListener("click", resetView);
 

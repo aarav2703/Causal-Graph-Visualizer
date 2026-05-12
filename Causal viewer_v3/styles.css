@@ -433,6 +433,10 @@ input[type="number"] {
   box-shadow: 0 24px 56px rgba(28, 36, 51, 0.26);
 }
 
+.export-card {
+  width: min(520px, 100%);
+}
+
 .legend-editor-header {
   display: flex;
   align-items: flex-start;
@@ -455,6 +459,29 @@ input[type="number"] {
   font: 13px/1.45 Consolas, "Courier New", monospace;
   color: #1f2430;
   background: #f9fbff;
+}
+
+.export-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.checkbox-row input {
+  width: auto;
+  min-width: 18px;
+  height: 18px;
+}
+
+.checkbox-row label {
+  font-size: 13px;
+  color: #334;
 }
 
 .guide-modal {
