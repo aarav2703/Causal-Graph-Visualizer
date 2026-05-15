@@ -3,4 +3,5 @@ __pycache__/
 dist/
 build/
 release/
-./DS poster
+/DS poster/
+/temp/
