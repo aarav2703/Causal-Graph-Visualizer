@@ -4,7 +4,7 @@ This project aims to be a causal graph viewer for importing graphs from differen
 
 **Download For Windows**
 
-[Download `CausalGraphVisualizer.exe`](https://github.com/aarav2703/Causal-Graph-Visualizer/releases/latest/download/CausalGraphVisualizer.exe)
+[Download `CausalGraphVisualizer.exe`](https://github.com/aarav2703/Causal-Graph-Visualizer/raw/main/CausalGraphVisualizer.exe)
 
 Supported imports:
 
