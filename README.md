@@ -1,10 +1,14 @@
 # Causal Graph Visualizer
 
-This project aims to be a causal graph viewer for importing graphs from different tools, exploring them in one interface, and exporting clean figures for presentations or papers. It uses a browser-based viewer plus a small local Python service that converts each supported graph format into the same structure before display.
+Causal Graph Visualizer is a small research-oriented tool for viewing, comparing, and preparing causal graphs from several common causal-analysis packages. The goal is to make it easier to inspect graph structure, preserve important endpoint semantics, and export clear figures for presentations, posters, papers, and exploratory analysis.
+
+The viewer runs in the browser and uses a lightweight local import service to translate supported graph formats into a shared internal representation.
 
 **Download For Windows**
 
 [Download `CausalGraphVisualizer.exe`](https://github.com/aarav2703/Causal-Graph-Visualizer/raw/main/CausalGraphVisualizer.exe)
+
+On some Windows systems, SmartScreen may show a warning for newly built academic or open-source executables. If you prefer not to use the `.exe`, the project can also be run directly from source with Python.
 
 Supported imports:
 
@@ -14,22 +18,22 @@ Supported imports:
 - Dagitty
 - Canonical JSON
 
-What the app can do:
+Current features:
 
-- import graphs from several source formats
-- zoom, pan, and drag nodes
-- filter around selected targets
-- show neighbors, parents, children, ancestors, or descendants
-- edit node and edge appearance in the viewer
-- save sessions and export layout JSON
-- export final figures as `PNG`, `JPEG`, `WebP`, or `SVG`
+- Import graphs from several causal-analysis tools
+- Preserve directed, undirected, bidirected, and circle-endpoint edge types
+- Zoom, pan, and drag nodes for manual layout refinement
+- Filter around selected target nodes
+- Show neighbors, parents, children, ancestors, or descendants
+- Edit node and edge appearance in the viewer
+- Save sessions and export layout JSON
+- Export final figures as `PNG`, `JPEG`, `WebP`, or `SVG`
 
 The current viewer entry point is [Causal viewer_v3/index.html](./Causal%20viewer_v3/index.html).
 
-**Running The Beta**
-If you are running from source instead of the `.exe`, Python is required.
+**Running From Source**
 
-Open PowerShell in the repo root and run:
+If you are not using the Windows executable, open PowerShell in the repo root and run:
 
 ```powershell
 $env:PYTHONPATH='.'
@@ -38,7 +42,7 @@ python .\launcher.py
 
 This starts the local import server and opens the viewer in your default browser.
 
-If you want to start the import server by itself, run:
+You can also start only the import service:
 
 ```powershell
 $env:PYTHONPATH='.'
@@ -47,37 +51,24 @@ python .\scripts\import_graph_server.py
 
 Then open [Causal viewer_v3/index.html](./Causal%20viewer_v3/index.html) in your browser.
 
-**Rebuilding The Windows EXE**
-
-For maintainers:
-
-```powershell
-python -m pip install pyinstaller
-powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_exe.ps1
-```
-
-This writes:
-
-```text
-dist\CausalGraphVisualizer.exe
-```
-
 **Sample Files**
-Sample files are in [sample v3 inputs](./sample%20v3%20inputs).
 
-A good file to try first:
+The folder [sample v3 inputs](./sample%20v3%20inputs) contains small example graphs that are useful for trying the viewer quickly. These files are intended to show how different source formats are normalized into the same visual workspace.
 
+- `causal_learn_complex_pag.txt` is a good first example because it includes a richer mixed-edge PAG-style graph.
+- `tetrad_complex_pag.txt` demonstrates Tetrad-style edge notation and partially oriented edges.
+- `dagitty_sample.txt` gives a compact Dagitty-style graph.
+- `dowhy_sample.dot` provides a simple DoWhy/DOT-style input.
 
-- `causal_learn_complex_pag.txt`
+Additional generated parser fixtures are available in [parser_test_outputs](./parser_test_outputs). Those files are more technical and are mainly useful for checking parser compatibility across Tetrad, causal-learn, Dagitty, and DoWhy raw outputs.
 
+Basic import flow:
 
-Basic flow:
-
-1. Start the app with `python .\launcher.py`.
+1. Start the app, either with the Windows `.exe` or with `python .\launcher.py`.
 2. In the viewer, pick a source format.
 3. Choose a matching graph file.
 4. Click `Import Graph`.
-5. Optionally load the matching legend.
+5. Optionally load or edit a legend.
 6. Explore, edit, and export the graph.
 
 **Screenshots**
@@ -92,5 +83,5 @@ Edge styling editor opened on a graph edge:
 **Development Notes**
 - The viewer starts empty until a graph is imported.
 - Import and legend loading depend on the local Python server.
-- Browser settings such as threshold, label mode, edge filter modes, target color, and sidebar width are saved locally.
+- Browser settings such as threshold, label mode, target color, and sidebar width are saved locally.
 - Session save/load and layout export are available from the viewer UI.
