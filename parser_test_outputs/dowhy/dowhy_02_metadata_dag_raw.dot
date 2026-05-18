@@ -1,0 +1,15 @@
+digraph {
+  "Infant_Age" [label="Infant Age", role="covariate"];
+  "Gestational_Age" [label="Gestational Age", role="confounder"];
+  "Feeding_Difficulty" [label="Feeding Difficulty", role="treatment"];
+  "Sleep_Duration" [label="Sleep Duration", role="mediator"];
+  "Crying_Frequency" [label="Crying Frequency", role="mediator"];
+  "Parent_Wellbeing" [label="Parent Wellbeing", role="outcome"];
+
+  "Infant_Age" -> "Crying_Frequency" [weight=0.20, label="age_to_crying"];
+  "Gestational_Age" -> "Feeding_Difficulty" [weight=-0.25, label="gestation_to_feeding"];
+  "Gestational_Age" -> "Sleep_Duration" [weight=0.35, label="gestation_to_sleep"];
+  "Feeding_Difficulty" -> "Sleep_Duration" [weight=-0.60, label="feeding_to_sleep"];
+  "Feeding_Difficulty" -> "Crying_Frequency" [weight=0.55, label="feeding_to_crying"];
+  "Crying_Frequency" -> "Parent_Wellbeing" [weight=-0.60, label="crying_to_parent"];
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "file": "parser_test_outputs\\dowhy\\dowhy_01_simple_dag_raw.gml",
+    "loaded": true,
+    "treatment": "Feeding_Difficulty",
+    "outcome": "Parent_Wellbeing"
+  },
+  {
+    "file": "parser_test_outputs\\dowhy\\dowhy_01_simple_dag_raw.dot",
+    "loaded": true,
+    "treatment": "Feeding_Difficulty",
+    "outcome": "Parent_Wellbeing"
+  },
+  {
+    "file": "parser_test_outputs\\dowhy\\dowhy_02_metadata_dag_raw.gml",
+    "loaded": true,
+    "treatment": "Feeding_Difficulty",
+    "outcome": "Parent_Wellbeing"
+  },
+  {
+    "file": "parser_test_outputs\\dowhy\\dowhy_02_metadata_dag_raw.dot",
+    "loaded": true,
+    "treatment": "Feeding_Difficulty",
+    "outcome": "Parent_Wellbeing"
+  },
+  {
+    "file": "parser_test_outputs\\dowhy\\dowhy_03_latent_dag_raw.gml",
+    "loaded": true,
+    "treatment": "Feeding_Difficulty",
+    "outcome": "Parent_Wellbeing"
+  },
+  {
+    "file": "parser_test_outputs\\dowhy\\dowhy_03_latent_dag_raw.dot",
+    "loaded": true,
+    "treatment": "Feeding_Difficulty",
+    "outcome": "Parent_Wellbeing"
+  }
+]

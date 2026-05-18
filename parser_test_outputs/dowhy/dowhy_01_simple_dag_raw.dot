@@ -1,0 +1,7 @@
+digraph {
+  Gestational_Age -> Feeding_Difficulty;
+  Gestational_Age -> Sleep_Duration;
+  Feeding_Difficulty -> Sleep_Duration;
+  Sleep_Duration -> Crying_Frequency;
+  Crying_Frequency -> Parent_Wellbeing;
+}

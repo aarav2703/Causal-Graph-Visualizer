@@ -1,0 +1,41 @@
+{
+  "shared_data_file": "parser_test_outputs\\shared_synthetic_data.csv",
+  "labels": [
+    "Infant_Age",
+    "Gestational_Age",
+    "Feeding_Difficulty",
+    "Sleep_Duration",
+    "Crying_Frequency",
+    "Parent_Wellbeing",
+    "Soothing_Response"
+  ],
+  "outputs": {
+    "pc": {
+      "algorithm": "PC",
+      "alpha": 0.05,
+      "files": [
+        "causal_learn_01_pc_raw.dot",
+        "causal_learn_01_pc_raw_graph_str.txt",
+        "causal_learn_01_pc_raw_graph_repr.txt"
+      ]
+    },
+    "fci": {
+      "algorithm": "FCI",
+      "alpha": 0.05,
+      "files": [
+        "causal_learn_02_fci_raw.dot",
+        "causal_learn_02_fci_raw_edges_raw_dump.txt",
+        "causal_learn_02_fci_raw_graph_str.txt",
+        "causal_learn_02_fci_raw_graph_repr.txt"
+      ]
+    },
+    "ges": {
+      "algorithm": "GES",
+      "files": [
+        "causal_learn_03_ges_raw.dot",
+        "causal_learn_03_ges_raw_graph_str.txt",
+        "causal_learn_03_ges_raw_graph_repr.txt"
+      ]
+    }
+  }
+}

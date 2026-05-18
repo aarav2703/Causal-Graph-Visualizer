@@ -1,0 +1,15 @@
+Graph Nodes:
+Infant_Age;Gestational_Age;Feeding_Difficulty;Sleep_Duration;Crying_Frequency;Parent_Wellbeing;Soothing_Response
+
+Graph Edges:
+1. Crying_Frequency --> Parent_Wellbeing
+2. Crying_Frequency --> Soothing_Response
+3. Feeding_Difficulty --> Crying_Frequency
+4. Gestational_Age --- Sleep_Duration
+5. Infant_Age --> Crying_Frequency
+6. Parent_Wellbeing --> Feeding_Difficulty
+7. Sleep_Duration --> Crying_Frequency
+8. Sleep_Duration --> Feeding_Difficulty
+9. Sleep_Duration --> Parent_Wellbeing
+10. Soothing_Response --> Parent_Wellbeing
+

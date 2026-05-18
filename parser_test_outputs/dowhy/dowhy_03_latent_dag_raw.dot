@@ -1,0 +1,15 @@
+digraph {
+  "U_Stress" [label="Unobserved Stress", observed="no", latent=true];
+  "Feeding_Difficulty" [label="Feeding Difficulty", role="treatment"];
+  "Sleep_Duration" [label="Sleep Duration", role="mediator"];
+  "Crying_Frequency" [label="Crying Frequency", role="mediator"];
+  "Parent_Wellbeing" [label="Parent Wellbeing", role="outcome"];
+  "Soothing_Response" [label="Soothing Response", role="covariate"];
+
+  "U_Stress" -> "Feeding_Difficulty" [label="latent_to_feeding"];
+  "U_Stress" -> "Parent_Wellbeing" [label="latent_to_parent"];
+  "Feeding_Difficulty" -> "Sleep_Duration" [weight=-0.60];
+  "Sleep_Duration" -> "Crying_Frequency" [weight=-0.35];
+  "Crying_Frequency" -> "Parent_Wellbeing" [weight=-0.60];
+  "Soothing_Response" -> "Parent_Wellbeing" [weight=0.25];
+}

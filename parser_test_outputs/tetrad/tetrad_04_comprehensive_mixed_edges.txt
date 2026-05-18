@@ -1,0 +1,19 @@
+Graph Nodes: A; B; C; D; E; F; G; H; I; J; K; L; M; N; O; P; Q; R
+
+Graph Edges:
+1. A --> B dd [weight=0.42, confidence=0.91, beta=-0.37]
+2. C <-- D pd
+3. E --- F
+4. G <-> H pl
+5. I o-> J pd pl
+6. K <-o L dd nl
+7. M o-o N
+8. O o-- P nl
+9. Q --o R custom_property
+
+Graph Attributes:
+Score: -123.456
+Algorithm: synthetic comprehensive Tetrad parser fixture
+
+Graph Node Attributes:
+Score: [A: 1.25; B: 0.75; I: -0.50]

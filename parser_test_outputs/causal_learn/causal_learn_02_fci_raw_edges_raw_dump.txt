@@ -1,0 +1,109 @@
+EDGE 1
+str: X1 o-> X5
+repr: <causallearn.graph.Edge.Edge object at 0x000001884B1825D0>
+properties: []
+node1: X1
+node2: X5
+endpoint1: CIRCLE
+endpoint2: ARROW
+numerical_endpoint_1: 2
+numerical_endpoint_2: 1
+
+EDGE 2
+str: X2 o-o X4
+repr: <causallearn.graph.Edge.Edge object at 0x000001884B10A360>
+properties: []
+node1: X2
+node2: X4
+endpoint1: CIRCLE
+endpoint2: CIRCLE
+numerical_endpoint_1: 2
+numerical_endpoint_2: 2
+
+EDGE 3
+str: X3 o-o X4
+repr: <causallearn.graph.Edge.Edge object at 0x000001884B03D790>
+properties: []
+node1: X3
+node2: X4
+endpoint1: CIRCLE
+endpoint2: CIRCLE
+numerical_endpoint_1: 2
+numerical_endpoint_2: 2
+
+EDGE 4
+str: X3 o-> X5
+repr: <causallearn.graph.Edge.Edge object at 0x000001884AA6C1D0>
+properties: []
+node1: X3
+node2: X5
+endpoint1: CIRCLE
+endpoint2: ARROW
+numerical_endpoint_1: 2
+numerical_endpoint_2: 1
+
+EDGE 5
+str: X3 --> X6
+repr: <causallearn.graph.Edge.Edge object at 0x0000018849FE6750>
+properties: [<Property.pd: 3>, <Property.pl: 4>]
+node1: X3
+node2: X6
+endpoint1: TAIL
+endpoint2: ARROW
+numerical_endpoint_1: -1
+numerical_endpoint_2: 1
+
+EDGE 6
+str: X4 o-> X5
+repr: <causallearn.graph.Edge.Edge object at 0x000001884A0B4710>
+properties: []
+node1: X4
+node2: X5
+endpoint1: CIRCLE
+endpoint2: ARROW
+numerical_endpoint_1: 2
+numerical_endpoint_2: 1
+
+EDGE 7
+str: X4 --> X6
+repr: <causallearn.graph.Edge.Edge object at 0x000001884A0B46E0>
+properties: [<Property.pd: 3>, <Property.pl: 4>]
+node1: X4
+node2: X6
+endpoint1: TAIL
+endpoint2: ARROW
+numerical_endpoint_1: -1
+numerical_endpoint_2: 1
+
+EDGE 8
+str: X5 --> X6
+repr: <causallearn.graph.Edge.Edge object at 0x000001884B1DCC80>
+properties: [<Property.dd: 1>, <Property.nl: 2>]
+node1: X5
+node2: X6
+endpoint1: TAIL
+endpoint2: ARROW
+numerical_endpoint_1: -1
+numerical_endpoint_2: 1
+
+EDGE 9
+str: X5 --> X7
+repr: <causallearn.graph.Edge.Edge object at 0x000001884B1DCA10>
+properties: [<Property.pd: 3>, <Property.nl: 2>]
+node1: X5
+node2: X7
+endpoint1: TAIL
+endpoint2: ARROW
+numerical_endpoint_1: -1
+numerical_endpoint_2: 1
+
+EDGE 10
+str: X6 --> X7
+repr: <causallearn.graph.Edge.Edge object at 0x000001884B1DC110>
+properties: [<Property.dd: 1>, <Property.nl: 2>]
+node1: X6
+node2: X7
+endpoint1: TAIL
+endpoint2: ARROW
+numerical_endpoint_1: -1
+numerical_endpoint_2: 1

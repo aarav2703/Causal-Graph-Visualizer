@@ -1,0 +1,29 @@
+EDGE 1
+str: Infant_Age --> Sleep_Duration
+properties: [<Property.dd: 1>, <Property.nl: 2>]
+endpoint1: TAIL
+endpoint2: ARROW
+numerical_endpoint_1: -1
+numerical_endpoint_2: 1
+node1: Infant_Age
+node2: Sleep_Duration
+
+EDGE 2
+str: Feeding_Difficulty o-> Parent_Stress
+properties: [<Property.pd: 3>, <Property.pl: 4>]
+endpoint1: CIRCLE
+endpoint2: ARROW
+numerical_endpoint_1: 2
+numerical_endpoint_2: 1
+node1: Feeding_Difficulty
+node2: Parent_Stress
+
+EDGE 3
+str: Genetic_Risk o-o Symptom_Score
+properties: []
+endpoint1: CIRCLE
+endpoint2: CIRCLE
+numerical_endpoint_1: 2
+numerical_endpoint_2: 2
+node1: Genetic_Risk
+node2: Symptom_Score

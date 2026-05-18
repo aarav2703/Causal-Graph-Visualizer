@@ -20,6 +20,8 @@
       edge_label_size: 12,
       target_color: "#4f7cff",
       target_scope: "all",
+      node_label_size: 16,
+      node_halo_enabled: true,
       export_type: "png",
       auto_fit_on_import: true,
       layout_on_import: "hierarchical"
@@ -64,6 +66,9 @@
     targetSelect: document.getElementById("target-select"),
     targetColor: document.getElementById("target-color"),
     targetScope: document.getElementById("target-scope"),
+    nodeLabelSize: document.getElementById("node-label-size"),
+    nodeLabelSizeLabel: document.getElementById("node-label-size-label"),
+    nodeHaloToggle: document.getElementById("node-halo-toggle"),
     thresholdSlider: document.getElementById("threshold-slider"),
     thresholdLabel: document.getElementById("threshold-label"),
     edgeAlphaFilterMode: document.getElementById("edge-alpha-filter-mode"),
@@ -75,6 +80,8 @@
     edgeLabelMode: document.getElementById("edge-label-mode"),
     edgeLabelSize: document.getElementById("edge-label-size"),
     edgeLabelSizeLabel: document.getElementById("edge-label-size-label"),
+    bulkEdgeColor: document.getElementById("bulk-edge-color"),
+    applyEdgeColorBtn: document.getElementById("apply-edge-color-btn"),
     widthSlider: document.getElementById("width-slider"),
     widthLabel: document.getElementById("width-label"),
     edgeStep: document.getElementById("edge-step"),
@@ -98,10 +105,14 @@
     exportCancelBtn: document.getElementById("export-cancel-btn"),
     exportLayoutBtn: document.getElementById("export-layout-btn"),
     resetViewBtn: document.getElementById("reset-view-btn"),
+    undoBtn: document.getElementById("undo-btn"),
+    redoBtn: document.getElementById("redo-btn"),
+    toggleLegendBtn: document.getElementById("toggle-legend-btn"),
     viewerGuideBtn: document.getElementById("viewer-guide-btn"),
     parserSelect: document.getElementById("parser-select"),
     fileInput: document.getElementById("graph-file-input"),
     sessionFileInput: document.getElementById("session-file-input"),
+    legendFileInput: document.getElementById("legend-file-input"),
     importBtn: document.getElementById("import-btn"),
     importLegendBtn: document.getElementById("import-legend-btn"),
     importStatus: document.getElementById("import-status"),
@@ -118,6 +129,8 @@
     nodeColorInput: document.getElementById("style-node-color"),
     nodeAlphaInput: document.getElementById("style-node-alpha"),
     nodeSizeInput: document.getElementById("style-node-size"),
+    nodeFontSizeInput: document.getElementById("style-node-font-size"),
+    nodeFontSizeLabel: document.getElementById("style-node-font-size-label"),
     nodeShapeInput: document.getElementById("style-node-shape"),
     edgeColorInput: document.getElementById("style-edge-color"),
     edgeAlphaInput: document.getElementById("style-edge-alpha"),
@@ -125,6 +138,7 @@
     edgeWeightInput: document.getElementById("style-edge-weight"),
     edgeConfidenceInput: document.getElementById("style-edge-confidence"),
     edgeValueWarning: document.getElementById("style-edge-value-warning"),
+    edgeHideLabelInput: document.getElementById("style-edge-hide-label"),
     edgeBendInput: document.getElementById("style-edge-bend"),
     edgeBendLabel: document.getElementById("style-edge-bend-label"),
     legendPanel: document.getElementById("legend-panel"),
@@ -162,6 +176,10 @@
     legendDragActive: false,
     legendDragOffsetX: 0,
     legendDragOffsetY: 0,
+    nodeDragHistorySnapshot: null,
+    styleHistoryCommitted: false,
+    undoStack: [],
+    redoStack: [],
     currentLegend: null,
     currentLegendKey: null,
     graphName: "",
@@ -346,6 +364,8 @@
       edge_width_strength: Number(dom.edgeWidthStrength.value),
       edge_label_mode: dom.edgeLabelMode.value,
       edge_label_size: Number(dom.edgeLabelSize.value),
+      node_label_size: Number(dom.nodeLabelSize.value),
+      node_halo_enabled: dom.nodeHaloToggle.checked,
       target_color: dom.targetColor.value,
       target_scope: dom.targetScope.value,
       export_type: dom.exportType.value
@@ -368,6 +388,9 @@
     dom.edgeLabelMode.value = prefs.edge_label_mode;
     dom.edgeLabelSize.value = String(prefs.edge_label_size);
     dom.edgeLabelSizeLabel.textContent = `${dom.edgeLabelSize.value}px`;
+    dom.nodeLabelSize.value = String(prefs.node_label_size ?? 16);
+    dom.nodeLabelSizeLabel.textContent = `${dom.nodeLabelSize.value}px`;
+    dom.nodeHaloToggle.checked = prefs.node_halo_enabled !== false;
     dom.exportType.value = prefs.export_type;
     setSidebarWidth(prefs.sidebar_width);
   }
@@ -378,6 +401,79 @@
       y: node.layout.y,
       hidden: node.hidden
     }));
+  }
+
+  function captureHistorySnapshot() {
+    if (state.nodes.length === 0) return null;
+    return {
+      graph: buildCurrentGraphPayload(),
+      selectedTargets: getSelectedTargets().map((index) => state.nodes[index]?.id).filter(Boolean),
+      camera: {
+        scale: state.scale,
+        offsetX: state.offsetX,
+        offsetY: state.offsetY
+      }
+    };
+  }
+
+  function historySnapshotsMatch(left, right) {
+    if (!left || !right) return false;
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  function updateHistoryButtons() {
+    dom.undoBtn.disabled = state.undoStack.length === 0;
+    dom.redoBtn.disabled = state.redoStack.length === 0;
+  }
+
+  function pushUndoSnapshot(snapshot = captureHistorySnapshot()) {
+    if (!snapshot) return;
+    const previous = state.undoStack[state.undoStack.length - 1];
+    if (historySnapshotsMatch(snapshot, previous)) return;
+    state.undoStack.push(snapshot);
+    if (state.undoStack.length > 50) state.undoStack.shift();
+    state.redoStack = [];
+    updateHistoryButtons();
+  }
+
+  function resetHistory() {
+    state.undoStack = [];
+    state.redoStack = [];
+    state.nodeDragHistorySnapshot = null;
+    state.styleHistoryCommitted = false;
+    updateHistoryButtons();
+  }
+
+  function restoreHistorySnapshot(snapshot) {
+    if (!snapshot?.graph) return;
+    normalizeGraph(cloneData(snapshot.graph));
+    rebuildTargetOptions();
+    applySelectedTargetIds(snapshot.selectedTargets || []);
+    state.scale = snapshot.camera?.scale ?? state.scale;
+    state.offsetX = snapshot.camera?.offsetX ?? state.offsetX;
+    state.offsetY = snapshot.camera?.offsetY ?? state.offsetY;
+    hideStyleEditor();
+    updateFilters();
+  }
+
+  function undoLastChange() {
+    const previous = state.undoStack.pop();
+    if (!previous) return;
+    const current = captureHistorySnapshot();
+    if (current) state.redoStack.push(current);
+    restoreHistorySnapshot(previous);
+    updateHistoryButtons();
+    setStatus("Undid last graph edit.");
+  }
+
+  function redoLastChange() {
+    const next = state.redoStack.pop();
+    if (!next) return;
+    const current = captureHistorySnapshot();
+    if (current) state.undoStack.push(current);
+    restoreHistorySnapshot(next);
+    updateHistoryButtons();
+    setStatus("Redid graph edit.");
   }
 
   function getSelectedTargets() {
@@ -537,6 +633,31 @@
     return clamp(baseWidth * widthScale, 1.5, 16);
   }
 
+  function applyBulkEdgeColor() {
+    if (state.edges.length === 0) {
+      setStatus("Import a graph before changing edge colors.");
+      return;
+    }
+
+    const visibleEdges = state.edges.filter((edge) => !edge.hidden);
+    if (visibleEdges.length === 0) {
+      setStatus("No visible edges match the current target scope and filters.");
+      return;
+    }
+
+    pushUndoSnapshot();
+    const color = hexToRgba(dom.bulkEdgeColor.value, 0.75);
+    visibleEdges.forEach((edge) => {
+      edge.viz = edge.viz || {};
+      edge.viz.color = color;
+      edge.displayColor = color;
+    });
+    draw();
+
+    const scope = dom.targetScope.value === "all" ? "graph" : "visible subgraph";
+    setStatus(`Applied edge color to ${visibleEdges.length} edge${visibleEdges.length === 1 ? "" : "s"} in the ${scope}.`);
+  }
+
   function inferNodeColor(node) {
     if (node.viz?.color) return node.viz.color;
     return (
@@ -549,6 +670,12 @@
     return typeof node.viz?.size === "number"
       ? node.viz.size
       : state.preferences.style.default_node_size;
+  }
+
+  function inferNodeFontSize(node) {
+    return typeof node.viz?.fontSize === "number"
+      ? node.viz.fontSize
+      : Number(state.preferences.viewer.node_label_size || 16);
   }
 
   function inferNodeShape(node) {
@@ -670,6 +797,7 @@
   }
 
   function getEdgeLabelText(edge) {
+    if (edge.viz?.hideLabel) return null;
     const mode = dom.edgeLabelMode.value;
     if (mode === "none") return null;
     if (mode === "weight") {
@@ -944,6 +1072,7 @@
       hidden: false,
       displayColor: inferNodeColor(node),
       size: inferNodeSize(node),
+      fontSize: inferNodeFontSize(node),
       shape: inferNodeShape(node)
     }));
 
@@ -996,6 +1125,7 @@
     dom.targetSelect.innerHTML = "";
     hideStyleEditor();
     hideLegend();
+    resetHistory();
     draw();
   }
 
@@ -1043,6 +1173,7 @@
     state.nodes.forEach((node, index) => {
       node.hidden = scopedNodes !== null && !scopedNodes.has(index);
       node.displayColor = node.viz?.color || inferNodeColor(node);
+      node.fontSize = inferNodeFontSize(node);
       if (selected.has(index)) {
         node.displayColor = targetRgba;
       }
@@ -1070,22 +1201,25 @@
     const center = nodeCenterFor(context, node);
     const lines = node.label.split("_");
     const size = node.size || RADIUS;
+    const fontSize = node.fontSize || Number(state.preferences.viewer.node_label_size || 16);
 
-    // Paint a solid backdrop first so translucent node fills do not reveal edges underneath.
-    context.fillStyle = BACKGROUND;
-    context.beginPath();
-    if (node.shape === "square") {
-      context.rect(center.x - size - 3, center.y - size - 3, (size + 3) * 2, (size + 3) * 2);
-    } else if (node.shape === "diamond") {
-      context.moveTo(center.x, center.y - size - 3);
-      context.lineTo(center.x + size + 3, center.y);
-      context.lineTo(center.x, center.y + size + 3);
-      context.lineTo(center.x - size - 3, center.y);
-      context.closePath();
-    } else {
-      context.arc(center.x, center.y, size + 3, 0, Math.PI * 2);
+    // Optional backdrop masks edge strokes below translucent node fills.
+    if (state.preferences.viewer.node_halo_enabled !== false) {
+      context.fillStyle = BACKGROUND;
+      context.beginPath();
+      if (node.shape === "square") {
+        context.rect(center.x - size - 3, center.y - size - 3, (size + 3) * 2, (size + 3) * 2);
+      } else if (node.shape === "diamond") {
+        context.moveTo(center.x, center.y - size - 3);
+        context.lineTo(center.x + size + 3, center.y);
+        context.lineTo(center.x, center.y + size + 3);
+        context.lineTo(center.x - size - 3, center.y);
+        context.closePath();
+      } else {
+        context.arc(center.x, center.y, size + 3, 0, Math.PI * 2);
+      }
+      context.fill();
     }
-    context.fill();
 
     context.fillStyle = node.displayColor;
     context.beginPath();
@@ -1111,14 +1245,15 @@
     }
 
     context.fillStyle = LABEL_FONT.color;
-    context.font = LABEL_FONT.style;
+    context.font = `${fontSize}px Segoe UI`;
     context.textAlign = "center";
     context.textBaseline = "middle";
 
-    let shift = ((1 - lines.length) * 16) / 2;
+    const lineHeight = Math.round(fontSize * 1.05);
+    let shift = ((1 - lines.length) * lineHeight) / 2;
     lines.forEach((line) => {
       context.fillText(line, center.x, center.y + shift);
-      shift += 16;
+      shift += lineHeight;
     });
   }
 
@@ -1138,10 +1273,18 @@
     context.fill();
   }
 
-  function drawCircleEndpoint(context, x, y, radius) {
+  function drawCircleEndpoint(context, x, y, radius, color, lineWidth) {
+    context.save();
+    context.fillStyle = BACKGROUND;
+    context.beginPath();
+    context.arc(x, y, radius + Math.max(2, lineWidth * 0.55), 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
     context.beginPath();
     context.arc(x, y, radius, 0, Math.PI * 2);
     context.stroke();
+    context.restore();
   }
 
   function maskLineUnderArrowhead(context, x, y, angle, length, lineWidth) {
@@ -1227,7 +1370,9 @@
         context,
         geometry.end.x - 6 * Math.cos(targetAngle),
         geometry.end.y - 6 * Math.sin(targetAngle),
-        6
+        6,
+        renderColor,
+        renderWidth
       );
     }
 
@@ -1247,7 +1392,9 @@
         context,
         geometry.start.x + 6 * Math.cos(sourceAngle),
         geometry.start.y + 6 * Math.sin(sourceAngle),
-        6
+        6,
+        renderColor,
+        renderWidth
       );
     }
 
@@ -1497,6 +1644,25 @@
     state.legendDragActive = false;
     dom.legendPanel.classList.add("hidden");
     hideLegendEditor();
+    updateLegendToggleButton();
+  }
+
+  function updateLegendToggleButton() {
+    const hasLegend = Boolean(state.currentLegend);
+    const isHidden = dom.legendPanel.classList.contains("hidden");
+    dom.toggleLegendBtn.disabled = !hasLegend;
+    dom.toggleLegendBtn.textContent = isHidden ? "Show Legend" : "Hide Legend";
+  }
+
+  function toggleLegendVisibility() {
+    if (!state.currentLegend) {
+      setStatus("Import a legend before toggling it.");
+      return;
+    }
+    dom.legendPanel.classList.toggle("hidden");
+    hideLegendEditor();
+    updateLegendToggleButton();
+    setStatus(dom.legendPanel.classList.contains("hidden") ? "Legend hidden." : "Legend shown.");
   }
 
   function showViewerGuide() {
@@ -1592,6 +1758,7 @@
     const maxTop = Math.max(12, rect.height - legendRect.height - 12);
     dom.legendPanel.style.left = `${Math.min(desiredLeft, maxLeft)}px`;
     dom.legendPanel.style.top = `${Math.min(desiredTop, maxTop)}px`;
+    updateLegendToggleButton();
   }
 
   function legendFromDom() {
@@ -1689,8 +1856,36 @@
       return;
     }
 
+    dom.legendFileInput.click();
+  }
+
+  async function loadLegendFromFile() {
+    const file = dom.legendFileInput.files?.[0];
+    if (!file) {
+      setImportStatus("No legend file selected.");
+      return;
+    }
+
+    let legend;
+    try {
+      legend = JSON.parse(await readFileAsText(file));
+    } catch (error) {
+      setStatus(`Legend JSON is invalid: ${error.message}`);
+      setImportStatus(`Could not load ${file.name}.`);
+      return;
+    }
+
+    if (!legend || !Array.isArray(legend.sections)) {
+      setStatus("Legend JSON must include a sections array.");
+      setImportStatus(`${file.name} is not a valid legend file.`);
+      return;
+    }
+
     const rect = dom.canvasContainer.getBoundingClientRect();
-    await loadLegendAtPosition(rect.left + 28, rect.top + 28);
+    state.currentLegendKey = file.name;
+    renderLegend(legend, rect.left + 28, rect.top + 28);
+    setStatus(`Imported legend from ${file.name}.`);
+    setImportStatus(`Loaded legend ${file.name}.`);
   }
 
   async function handleCanvasContextMenu(event) {
@@ -1722,6 +1917,7 @@
   function showStyleEditor(type, index, clientX, clientY) {
     // Open the style editor for a specific node or edge target.
     state.styleTarget = { type, index };
+    state.styleHistoryCommitted = false;
     dom.styleEditorTitle.textContent = type === "node" ? "Edit Node Style" : "Edit Edge Style";
     dom.nodeStyleFields.style.display = type === "node" ? "grid" : "none";
     dom.edgeStyleFields.style.display = type === "edge" ? "grid" : "none";
@@ -1735,6 +1931,8 @@
       dom.nodeColorInput.value = rgbaToHex(node.viz?.color || inferNodeColor(node));
       dom.nodeAlphaInput.value = String(rgbaAlpha(node.viz?.color || inferNodeColor(node)));
       dom.nodeSizeInput.value = String(node.size || RADIUS);
+      dom.nodeFontSizeInput.value = String(node.fontSize || inferNodeFontSize(node));
+      dom.nodeFontSizeLabel.textContent = `${dom.nodeFontSizeInput.value}px`;
       dom.nodeShapeInput.value = node.shape || "circle";
     } else {
       const edge = state.edges[index];
@@ -1745,6 +1943,7 @@
       dom.edgeConfidenceInput.value =
         typeof edge.attributes.confidence === "number" ? String(edge.attributes.confidence) : "";
       dom.edgeValueWarning.classList.toggle("hidden", !edge.valueEdited);
+      dom.edgeHideLabelInput.checked = edge.viz?.hideLabel === true;
       const bend = inferEdgeBend(edge);
       dom.edgeBendInput.value = String(Math.round(bend * 100));
       dom.edgeBendLabel.textContent = describeEdgeBend(bend);
@@ -1754,21 +1953,29 @@
   function applyStyleEditor() {
     // Write style edits directly back into the active runtime graph.
     if (!state.styleTarget) return;
+    if (!state.styleHistoryCommitted) {
+      pushUndoSnapshot();
+      state.styleHistoryCommitted = true;
+    }
     if (state.styleTarget.type === "node") {
       const node = state.nodes[state.styleTarget.index];
       node.viz = node.viz || {};
       node.viz.color = hexToRgba(dom.nodeColorInput.value, Number(dom.nodeAlphaInput.value));
       node.viz.size = Number(dom.nodeSizeInput.value);
+      node.viz.fontSize = Number(dom.nodeFontSizeInput.value);
       node.viz.shape = dom.nodeShapeInput.value;
       node.displayColor = node.viz.color;
       node.size = node.viz.size;
+      node.fontSize = node.viz.fontSize;
       node.shape = node.viz.shape;
+      dom.nodeFontSizeLabel.textContent = `${node.fontSize}px`;
     } else {
       const edge = state.edges[state.styleTarget.index];
       edge.viz = edge.viz || {};
       edge.attributes = edge.attributes || {};
       edge.viz.color = hexToRgba(dom.edgeColorInput.value, Number(dom.edgeAlphaInput.value));
       edge.viz.width = Number(dom.edgeWidthInput.value);
+      edge.viz.hideLabel = dom.edgeHideLabelInput.checked;
       const nextWeight = dom.edgeWeightInput.value === "" ? undefined : Number(dom.edgeWeightInput.value);
       const nextConfidence = dom.edgeConfidenceInput.value === "" ? undefined : Number(dom.edgeConfidenceInput.value);
       edge.weight = Number.isFinite(nextWeight) ? nextWeight : undefined;
@@ -1879,6 +2086,7 @@
         viz: {
           color: node.viz?.color || node.displayColor,
           size: node.size,
+          fontSize: node.viz?.fontSize,
           shape: node.shape
         },
         layout: {
@@ -1899,7 +2107,8 @@
           curveMode: edge.viz?.curveMode,
           curveDirection: edge.viz?.curveDirection,
           curveStrength: edge.viz?.curveStrength,
-          curveBend: edge.viz?.curveBend
+          curveBend: edge.viz?.curveBend,
+          hideLabel: edge.viz?.hideLabel === true
         }
       })),
       metadata: cloneData(state.originalGraph?.metadata || {})
@@ -1943,6 +2152,8 @@
         edge_width_strength: Number(dom.edgeWidthStrength.value),
         edge_label_mode: dom.edgeLabelMode.value,
         edge_label_size: Number(dom.edgeLabelSize.value),
+        node_label_size: Number(dom.nodeLabelSize.value),
+        node_halo_enabled: dom.nodeHaloToggle.checked,
         sidebar_width: Number(dom.widthSlider.value),
         export_type: dom.exportType.value,
         camera: {
@@ -2002,6 +2213,7 @@
     dom.legendPanel.style.left = legendState.left || "28px";
     dom.legendPanel.style.top = legendState.top || "28px";
     dom.legendPanel.classList.remove("hidden");
+    updateLegendToggleButton();
   }
 
   async function loadSessionFromFile() {
@@ -2039,6 +2251,9 @@
     dom.edgeLabelMode.value = ui.edge_label_mode || "none";
     dom.edgeLabelSize.value = String(ui.edge_label_size ?? 12);
     dom.edgeLabelSizeLabel.textContent = `${dom.edgeLabelSize.value}px`;
+    dom.nodeLabelSize.value = String(ui.node_label_size ?? 16);
+    dom.nodeLabelSizeLabel.textContent = `${dom.nodeLabelSize.value}px`;
+    dom.nodeHaloToggle.checked = ui.node_halo_enabled !== false;
     dom.exportType.value = ui.export_type || "png";
     setSidebarWidth(Number(ui.sidebar_width ?? dom.widthSlider.value));
 
@@ -2049,6 +2264,7 @@
     state.offsetX = Number(ui.camera?.offset_x ?? 0);
     state.offsetY = Number(ui.camera?.offset_y ?? 0);
     restoreLegendState(ui.legend);
+    resetHistory();
     draw();
 
     setStatus(`Loaded session from ${file.name}.`);
@@ -2211,6 +2427,7 @@
     state.originalGraph = cloneData(payload.graph);
     state.originalFilename = file.name;
     state.currentFilename = file.name;
+    resetHistory();
     hideLegend();
     rebuildTargetOptions();
     updateFilters();
@@ -2239,6 +2456,7 @@
         fitViewToGraph();
       }
       hideLegend();
+      resetHistory();
       setStatus("View and graph customizations reset.");
       setImportStatus(`Loaded ${state.graphName || "graph"} baseline state.`);
       return;
@@ -2294,6 +2512,18 @@
       draw();
       syncPreferencesFromControls();
     });
+    dom.applyEdgeColorBtn.addEventListener("click", applyBulkEdgeColor);
+    dom.nodeLabelSize.addEventListener("input", () => {
+      dom.nodeLabelSizeLabel.textContent = `${dom.nodeLabelSize.value}px`;
+      state.preferences.viewer.node_label_size = Number(dom.nodeLabelSize.value);
+      updateFilters();
+      syncPreferencesFromControls();
+    });
+    dom.nodeHaloToggle.addEventListener("change", () => {
+      state.preferences.viewer.node_halo_enabled = dom.nodeHaloToggle.checked;
+      draw();
+      syncPreferencesFromControls();
+    });
 
     dom.widthSlider.addEventListener("input", () => {
       setSidebarWidth(Number(dom.widthSlider.value));
@@ -2325,6 +2555,9 @@
     ].forEach((element) => element.addEventListener("input", updateExportSizeLabel));
     dom.exportLayoutBtn.addEventListener("click", exportLayoutSnapshot);
     dom.resetViewBtn.addEventListener("click", resetView);
+    dom.undoBtn.addEventListener("click", undoLastChange);
+    dom.redoBtn.addEventListener("click", redoLastChange);
+    dom.toggleLegendBtn.addEventListener("click", toggleLegendVisibility);
 
     dom.importBtn.addEventListener("click", async () => {
       try {
@@ -2336,6 +2569,16 @@
     });
     dom.importLegendBtn.addEventListener("click", () => {
       loadLegendFromButton().catch((error) => setStatus(String(error)));
+    });
+    dom.legendFileInput.addEventListener("change", async () => {
+      try {
+        await loadLegendFromFile();
+      } catch (error) {
+        setStatus(String(error));
+        setImportStatus(String(error));
+      } finally {
+        dom.legendFileInput.value = "";
+      }
     });
 
     dom.fileInput.addEventListener("change", () => {
@@ -2393,16 +2636,19 @@
       dom.nodeColorInput,
       dom.nodeAlphaInput,
       dom.nodeSizeInput,
+      dom.nodeFontSizeInput,
       dom.nodeShapeInput,
       dom.edgeColorInput,
       dom.edgeAlphaInput,
       dom.edgeWidthInput,
       dom.edgeWeightInput,
       dom.edgeConfidenceInput,
+      dom.edgeHideLabelInput,
       dom.edgeBendInput
     ].forEach((element) => element.addEventListener("input", applyStyleEditor));
 
     dom.edgeStep.addEventListener("pointerdown", () => {
+      pushUndoSnapshot();
       state.pullActive = true;
       stepEdgePull();
       setStatus("Running edge pull.");
@@ -2416,6 +2662,7 @@
     });
 
     dom.vertexStep.addEventListener("pointerdown", () => {
+      pushUndoSnapshot();
       state.pushActive = true;
       stepVertexPush();
       setStatus("Running vertex push.");
@@ -2465,9 +2712,18 @@
 
     document.addEventListener("pointerup", () => {
       const resized = state.resizeActive;
+      const dragSnapshot = state.nodeDragHistorySnapshot;
+      if (
+        state.selectedIndex !== -1 &&
+        dragSnapshot &&
+        !historySnapshotsMatch(dragSnapshot, captureHistorySnapshot())
+      ) {
+        pushUndoSnapshot(dragSnapshot);
+      }
       state.resizeActive = false;
       state.dragCanvas = false;
       state.selectedIndex = -1;
+      state.nodeDragHistorySnapshot = null;
       state.legendDragActive = false;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
@@ -2519,6 +2775,7 @@
       if (event.button === 2) return;
       const hitIndex = findNodeIndexAt(event.offsetX, event.offsetY);
       if (hitIndex !== -1) {
+        state.nodeDragHistorySnapshot = captureHistorySnapshot();
         state.selectedIndex = hitIndex;
         const pointer = screenToWorld(event.offsetX, event.offsetY);
         const center = nodeCenter(state.nodes[hitIndex]);

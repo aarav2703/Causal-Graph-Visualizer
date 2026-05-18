@@ -1,0 +1,3 @@
+PNG export failed. DOT file was still saved.
+
+FileNotFoundError(2, '"dot" not found in path.', None, 2, None)

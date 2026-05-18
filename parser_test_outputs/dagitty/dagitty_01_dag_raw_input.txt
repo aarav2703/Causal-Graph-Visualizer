@@ -1,0 +1,20 @@
+
+dag {
+  Infant_Age [pos="0,1"]
+  Gestational_Age [pos="0,0"]
+  Feeding_Difficulty [exposure,pos="1,0"]
+  Sleep_Duration [adjusted,pos="2,0"]
+  Crying_Frequency [pos="3,0"]
+  Parent_Wellbeing [outcome,pos="4,0"]
+  Soothing_Response [adjusted,pos="3,1"]
+
+  Gestational_Age -> Feeding_Difficulty
+  Gestational_Age -> Sleep_Duration
+  Infant_Age -> Crying_Frequency
+  Feeding_Difficulty -> Sleep_Duration
+  Feeding_Difficulty -> Crying_Frequency
+  Sleep_Duration -> Crying_Frequency
+  Crying_Frequency -> Parent_Wellbeing
+  Soothing_Response -> Parent_Wellbeing
+}
+

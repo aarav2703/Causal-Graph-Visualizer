@@ -1,0 +1,19 @@
+Graph Nodes:
+Infant_Age;Gestational_Age;Feeding_Difficulty;Sleep_Duration;Crying_Frequency;Parent_Wellbeing;Soothing_Response
+
+Graph Edges:
+1. Crying_Frequency --> Soothing_Response dd nl
+2. Crying_Frequency --> Parent_Wellbeing pd nl
+3. Feeding_Difficulty --> Parent_Wellbeing dd pl
+4. Feeding_Difficulty --> Sleep_Duration dd pl
+5. Parent_Wellbeing --> Sleep_Duration pd nl
+6. Parent_Wellbeing --> Soothing_Response pd nl
+7. Sleep_Duration --> Gestational_Age pd nl
+8. Feeding_Difficulty o-> Crying_Frequency
+9. Infant_Age o-> Crying_Frequency
+
+Graph Attributes:
+Score: -16914.906697
+
+Graph Node Attributes:
+Score: [Infant_Age: -2838.87756674293;Gestational_Age: -2503.721514380452;Feeding_Difficulty: -2838.87756674293;Sleep_Duration: -2196.2989364809264;Crying_Frequency: -2313.5156876618194;Parent_Wellbeing: -1876.5244096455294;Soothing_Response: -2347.091015831814]

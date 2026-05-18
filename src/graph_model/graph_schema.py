@@ -206,6 +206,16 @@ def load_graph(path: str) -> Graph:
     with open(path, "r") as f:
         data = json.load(f)
 
+    def filter_viz(cls, viz_data, attributes):
+        if not viz_data:
+            return None
+        allowed = set(getattr(cls, "__dataclass_fields__", {}).keys())
+        known = {key: value for key, value in viz_data.items() if key in allowed}
+        extra = {key: value for key, value in viz_data.items() if key not in allowed}
+        if extra:
+            attributes.setdefault("_extra_viz", {}).update(extra)
+        return cls(**known)
+
     info = GraphInfo(
         name=data["graph"]["name"],
         graph_type=GraphType(data["graph"]["graph_type"]),
@@ -218,9 +228,8 @@ def load_graph(path: str) -> Graph:
 
     nodes = []
     for n in data["nodes"]:
-        viz = None
-        if n.get("viz"):
-            viz = VizNode(**n["viz"])
+        attributes = n.get("attributes", {})
+        viz = filter_viz(VizNode, n.get("viz"), attributes)
 
         layout = None
         if n.get("layout"):
@@ -238,7 +247,7 @@ def load_graph(path: str) -> Graph:
                     )
                 ),
                 group=n.get("group"),
-                attributes=n.get("attributes", {}),
+                attributes=attributes,
                 viz=viz,
                 layout=layout,
             )
@@ -246,9 +255,8 @@ def load_graph(path: str) -> Graph:
 
     edges = []
     for e in data["edges"]:
-        viz = None
-        if e.get("viz"):
-            viz = VizEdge(**e["viz"])
+        attributes = e.get("attributes", {})
+        viz = filter_viz(VizEdge, e.get("viz"), attributes)
 
         endpoints = e["endpoints"]
 
@@ -260,7 +268,7 @@ def load_graph(path: str) -> Graph:
                 target_endpoint=Endpoint(endpoints["target"]),
                 lag=e.get("lag", 0),
                 weight=e.get("weight"),
-                attributes=e.get("attributes", {}),
+                attributes=attributes,
                 viz=viz,
             )
         )

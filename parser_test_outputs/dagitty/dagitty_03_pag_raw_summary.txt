@@ -1,0 +1,28 @@
+pag {
+Crying_Frequency [pos="3.000,0.000"]
+Feeding_Difficulty [exposure,pos="1.000,0.000"]
+Gestational_Age [pos="0.000,0.000"]
+Infant_Age [pos="0.000,1.000"]
+Parent_Wellbeing [outcome,pos="4.000,0.000"]
+Sleep_Duration [adjusted,pos="2.000,0.000"]
+Soothing_Response [latent,pos="3.000,1.000"]
+Crying_Frequency -- Infant_Age
+Crying_Frequency -> Parent_Wellbeing
+Crying_Frequency @-@ Sleep_Duration
+Feeding_Difficulty @-- Parent_Wellbeing
+Feeding_Difficulty @-> Sleep_Duration
+Gestational_Age -> Feeding_Difficulty
+}
+
+Variables:
+[1] "Crying_Frequency"   "Feeding_Difficulty" "Gestational_Age"   
+[4] "Infant_Age"         "Parent_Wellbeing"   "Sleep_Duration"    
+[7] "Soothing_Response" 
+
+Exposures:
+[1] "Feeding_Difficulty"
+
+Outcomes:
+[1] "Parent_Wellbeing"
+
+Adjustment sets, if applicable:

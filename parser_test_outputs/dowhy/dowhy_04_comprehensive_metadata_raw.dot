@@ -1,0 +1,16 @@
+digraph {
+  "Treatment_Node" [label="Treatment Node", role="treatment"];
+  "Outcome_Node" [label="Outcome Node", role="outcome"];
+  "Confounder_Node" [label="Confounder Node", role="common_cause"];
+  "Instrument_Node" [label="Instrument Node", role="instrument"];
+  "Mediator_Node" [label="Mediator Node", role="mediator"];
+  "Latent_Node" [label="Latent Node", observed="no", latent=true, unobserved=1];
+
+  "Confounder_Node" -> "Treatment_Node" [weight=0.42, beta=-0.37, confidence=0.91, label="confounder_to_treatment"];
+  "Confounder_Node" -> "Outcome_Node" [weight=0.50, label="confounder_to_outcome"];
+  "Treatment_Node" -> "Mediator_Node" [weight=0.63, beta=0.63, confidence=0.88, label="treatment_to_mediator"];
+  "Mediator_Node" -> "Outcome_Node" [weight=-0.22, beta=-0.22, confidence=0.79, label="mediator_to_outcome"];
+  "Instrument_Node" -> "Treatment_Node" [weight=0.71, label="instrument_to_treatment"];
+  "Latent_Node" -> "Treatment_Node" [weight=0.30, label="latent_to_treatment"];
+  "Latent_Node" -> "Outcome_Node" [weight=0.35, label="latent_to_outcome"];
+}

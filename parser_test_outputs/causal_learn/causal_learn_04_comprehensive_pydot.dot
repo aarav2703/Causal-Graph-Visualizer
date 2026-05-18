@@ -1,0 +1,30 @@
+digraph {
+  0 [label="Infant_Age"];
+  1 [label="Sleep_Duration"];
+  2 [label="Feeding_Difficulty"];
+  3 [label="Parent_Stress"];
+  4 [label="Growth"];
+  5 [label="Clinic_Visit"];
+  6 [label="Genetic_Risk"];
+  7 [label="Symptom_Score"];
+  8 [label="Medication"];
+  9 [label="Outcome"];
+  10 [label="Latent_U"];
+  11 [label="Selection_S"];
+  12 [label="Noise_A"];
+  13 [label="Noise_B"];
+  14 [label="Prior_A"];
+  15 [label="Prior_B"];
+  16 [label="Marker_A"];
+  17 [label="Marker_B"];
+
+  0 -> 1 [dir=both, arrowtail=none, arrowhead=normal, weight=0.42, beta=-0.37, confidence=0.91, label="tail_arrow"];
+  2 -> 3 [dir=both, arrowtail=normal, arrowhead=none, label="arrow_tail"];
+  4 -> 5 [dir=both, arrowtail=none, arrowhead=none, label="tail_tail"];
+  6 -> 7 [dir=both, arrowtail=normal, arrowhead=normal, label="arrow_arrow"];
+  8 -> 9 [dir=both, arrowtail=odot, arrowhead=normal, label="circle_arrow"];
+  10 -> 11 [dir=both, arrowtail=normal, arrowhead=odot, label="arrow_circle"];
+  12 -> 13 [dir=both, arrowtail=odot, arrowhead=odot, label="circle_circle"];
+  14 -> 15 [dir=both, arrowtail=odot, arrowhead=none, label="circle_tail"];
+  16 -> 17 [dir=both, arrowtail=none, arrowhead=odot, label="tail_circle"];
+}
