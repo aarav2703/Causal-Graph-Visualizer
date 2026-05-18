@@ -2,6 +2,10 @@
 
 This project aims to be a causal graph viewer for importing graphs from different tools, exploring them in one interface, and exporting clean figures for presentations or papers. It uses a browser-based viewer plus a small local Python service that converts each supported graph format into the same structure before display.
 
+**Download For Windows**
+
+[Download `CausalGraphVisualizer.exe`](https://github.com/aarav2703/Causal-Graph-Visualizer/releases/latest/download/CausalGraphVisualizer.exe)
+
 Supported imports:
 
 - Tetrad
@@ -23,7 +27,7 @@ What the app can do:
 The current viewer entry point is [Causal viewer_v3/index.html](./Causal%20viewer_v3/index.html).
 
 **Running The Beta**
-This repo is currently set up as a source-based beta. That means Python is required to run it.
+If you are running from source instead of the `.exe`, Python is required.
 
 Open PowerShell in the repo root and run:
 
@@ -32,7 +36,7 @@ $env:PYTHONPATH='.'
 python .\launcher.py
 ```
 
-This starts the local import server and opens the viewer in our default browser.
+This starts the local import server and opens the viewer in your default browser.
 
 If you want to start the import server by itself, run:
 
@@ -42,6 +46,21 @@ python .\scripts\import_graph_server.py
 ```
 
 Then open [Causal viewer_v3/index.html](./Causal%20viewer_v3/index.html) in your browser.
+
+**Rebuilding The Windows EXE**
+
+For maintainers:
+
+```powershell
+python -m pip install pyinstaller
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_exe.ps1
+```
+
+This writes:
+
+```text
+dist\CausalGraphVisualizer.exe
+```
 
 **Sample Files**
 Sample files are in [sample v3 inputs](./sample%20v3%20inputs).

@@ -5,3 +5,6 @@ build/
 release/
 /DS poster/
 /temp/
+dagitty.R
+outputs.ipynb
+/parser original copy/
